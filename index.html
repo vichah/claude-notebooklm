@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code × NotebookLM 五大進階應用情境</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', sans-serif;
+    background: #0a1628;
+    color: #fff;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Slide container ── */
+  .slides { width: 100%; height: 100vh; position: relative; }
+
+  .slide {
+    display: none;
+    width: 100%; height: 100%;
+    padding: 60px 80px;
+    flex-direction: column;
+    justify-content: center;
+    position: absolute;
+    top: 0; left: 0;
+  }
+  .slide.active { display: flex; }
+
+  /* ── Navigation ── */
+  .nav {
+    position: fixed;
+    bottom: 28px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 16px; align-items: center;
+    z-index: 100;
+  }
+  .nav button {
+    background: rgba(79,156,249,0.15);
+    border: 1.5px solid #4f9cf9;
+    color: #4f9cf9;
+    padding: 8px 28px;
+    border-radius: 24px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+  }
+  .nav button:hover { background: rgba(79,156,249,0.3); }
+  .nav button:disabled { opacity: 0.3; cursor: default; }
+  .page-info {
+    color: #7a99c4;
+    font-size: 13px;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  /* ── Progress bar ── */
+  .progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #4f9cf9, #a78bfa);
+    transition: width 0.3s;
+    z-index: 100;
+  }
+
+  /* ── Common elements ── */
+  .tag {
+    display: inline-block;
+    padding: 4px 14px;
+    border: 1.5px solid currentColor;
+    border-radius: 20px;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  .divider {
+    width: 60px; height: 3px;
+    background: currentColor;
+    margin: 16px 0 24px;
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+
+  .card {
+    background: #112240;
+    border-radius: 10px;
+    padding: 22px;
+    border-left: 4px solid currentColor;
+  }
+  .card h3 { font-size: 15px; margin-bottom: 8px; }
+  .card p  { font-size: 13px; color: #b8d0f0; line-height: 1.7; }
+
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px 20px;
+    background: #112240;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+  .step-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px;
+    flex-shrink: 0;
+    color: #0a1628;
+  }
+  .step-body h3 { font-size: 14px; margin-bottom: 4px; }
+  .step-body p  { font-size: 12px; color: #b8d0f0; }
+
+  .big-num {
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .big-label { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+  .big-desc  { font-size: 12px; color: #b8d0f0; line-height: 1.7; }
+
+  /* ── Slide-specific ── */
+
+  /* 封面 */
+  #s1 { background: linear-gradient(135deg, #0d1f3c 60%, #071020); }
+  #s1 .title { font-size: 52px; font-weight: 900; line-height: 1.2; }
+  #s1 .blue  { color: #4f9cf9; }
+  #s1 .sub   { font-size: 20px; color: #a78bfa; margin: 14px 0 10px; }
+  #s1 .desc  { font-size: 14px; color: #7a99c4; }
+  #s1 .tools { display: flex; gap: 12px; margin-top: 40px; flex-wrap: wrap; }
+  #s1 .tool-badge {
+    padding: 8px 20px;
+    border-radius: 24px;
+    border: 1.5px solid currentColor;
+    font-size: 13px; font-weight: 700;
+    background: rgba(255,255,255,0.04);
+  }
+
+  /* 頁標題樣式 */
+  .slide-title {
+    font-size: 30px; font-weight: 900;
+    margin-bottom: 6px;
+  }
+  .slide-sub {
+    font-size: 14px; color: #7a99c4;
+    margin-bottom: 32px;
+  }
+
+  /* 情境標籤 */
+  .scenario-badge {
+    display: inline-flex; align-items: center;
+    padding: 4px 16px;
+    border-radius: 20px;
+    font-size: 12px; font-weight: 700;
+    margin-bottom: 14px;
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid currentColor;
+  }
+
+  /* 流程箭頭 */
+  .flow {
+    display: flex; align-items: center;
+    flex-wrap: wrap; gap: 6px;
+    padding: 20px 24px;
+    background: #112240;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+  .flow-step {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px; font-weight: 600;
+    background: rgba(255,255,255,0.07);
+  }
+  .flow-arrow { color: #7a99c4; font-size: 16px; }
+
+  /* 引言 */
+  .quote {
+    border-left: 4px solid #fbbf24;
+    padding: 20px 28px;
+    background: #112240;
+    border-radius: 0 10px 10px 0;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  /* 輸出卡片 */
+  .output-card {
+    background: #112240;
+    border-radius: 8px;
+    padding: 16px 12px;
+    text-align: center;
+    border-top: 3px solid currentColor;
+  }
+  .output-card .icon { font-size: 22px; margin-bottom: 6px; }
+  .output-card .name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .output-card .sub  { font-size: 11px; color: #7a99c4; }
+
+  /* 工具流程圖 */
+  .tool-flow {
+    display: flex; align-items: stretch;
+    gap: 0; margin-bottom: 30px;
+  }
+  .tool-box {
+    flex: 1;
+    background: #112240;
+    padding: 20px 16px;
+    text-align: center;
+    position: relative;
+  }
+  .tool-box:not(:last-child)::after {
+    content: '▶';
+    position: absolute; right: -12px; top: 50%;
+    transform: translateY(-50%);
+    color: #7a99c4; font-size: 14px;
+    z-index: 2;
+  }
+  .tool-box:first-child { border-radius: 10px 0 0 10px; }
+  .tool-box:last-child  { border-radius: 0 10px 10px 0; }
+  .tool-box .tname { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .tool-box .trole { font-size: 12px; color: #7a99c4; }
+  .tool-top { height: 3px; background: currentColor; }
+
+  /* 數字統計 */
+  .stat-card {
+    background: #112240;
+    border-radius: 10px;
+    padding: 30px 24px;
+    text-align: center;
+    border-top: 3px solid currentColor;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="slides">
+
+  <!-- 1. 封面 -->
+  <div class="slide active" id="s1">
+    <div style="display:flex; gap:48px; align-items:center; width:100%;">
+      <div style="flex:1;">
+        <div class="tag" style="color:#4f9cf9">Claude基本功 EP04</div>
+        <div class="title">Claude Code<br><span class="blue">× NotebookLM</span></div>
+        <div class="sub">五大進階應用情境</div>
+        <div class="desc">跨工具神操作：自動同步 Obsidian & GitHub</div>
+        <div class="tools">
+          <span class="tool-badge" style="color:#4f9cf9">Claude Code</span>
+          <span class="tool-badge" style="color:#2dd4bf">NotebookLM</span>
+          <span class="tool-badge" style="color:#a78bfa">Obsidian</span>
+          <span class="tool-badge" style="color:#fbbf24">GitHub</span>
+        </div>
+      </div>
+      <div style="flex:1;">
+        <img src="slides/slide_cover_20260526_102308.png"
+             style="width:100%; border-radius:16px; box-shadow:0 8px 40px rgba(79,156,249,0.25); opacity:0.93;">
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 問題背景 -->
+  <div class="slide" id="s2">
+    <div class="slide-title">為什麼需要這套工作流？</div>
+    <div class="slide-sub">傳統 AI 工具的四大痛點</div>
+    <div style="display:flex; gap:36px; align-items:center;">
+      <div class="grid-2" style="flex:1.3;">
+        <div class="card" style="color:#f472b6">
+          <h3>❌ 工具各自獨立</h3>
+          <p>Claude、NotebookLM、Obsidian 互不溝通，資料四處分散，形成資訊孤島。</p>
+        </div>
+        <div class="card" style="color:#f472b6">
+          <h3>❌ 背景脈絡無法延續</h3>
+          <p>每次開新對話都要重新說明，AI 永遠不記得你是誰、你在做什麼。</p>
+        </div>
+        <div class="card" style="color:#f472b6">
+          <h3>❌ 知識難以沉澱</h3>
+          <p>洞見停留在聊天記錄裡，無法積累成可以複用的知識資產。</p>
+        </div>
+        <div class="card" style="color:#f472b6">
+          <h3>❌ NotebookLM 缺乏自動化</h3>
+          <p>功能強大卻全靠手動點擊，無法接入任何自動化流程，耗費大量時間。</p>
+        </div>
+      </div>
+      <div style="flex:0.7; display:flex; align-items:center; justify-content:center;">
+        <img src="slides/slide_pain_20260526_102304.png"
+             style="width:100%; border-radius:14px; box-shadow:0 8px 32px rgba(244,114,182,0.2);">
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 解決方案 -->
+  <div class="slide" id="s3">
+    <div class="slide-title">解決方案：MCP 串接一切</div>
+    <div class="slide-sub">透過 MCP（Model Context Protocol），讓 Claude Code 自動控制 NotebookLM</div>
+
+    <div class="tool-flow">
+      <div>
+        <div class="tool-top" style="color:#4f9cf9; background:#4f9cf9"></div>
+        <div class="tool-box">
+          <div class="tname" style="color:#4f9cf9">Claude Code</div>
+          <div class="trole">調度中樞</div>
+        </div>
+      </div>
+      <div>
+        <div class="tool-top" style="background:#2dd4bf"></div>
+        <div class="tool-box">
+          <div class="tname" style="color:#2dd4bf">NotebookLM</div>
+          <div class="trole">分析引擎</div>
+        </div>
+      </div>
+      <div>
+        <div class="tool-top" style="background:#a78bfa"></div>
+        <div class="tool-box">
+          <div class="tname" style="color:#a78bfa">Obsidian</div>
+          <div class="trole">記憶庫</div>
+        </div>
+      </div>
+      <div>
+        <div class="tool-top" style="background:#fbbf24"></div>
+        <div class="tool-box">
+          <div class="tname" style="color:#fbbf24">GitHub</div>
+          <div class="trole">版本控制</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:28px; align-items:center;">
+      <div class="grid-3" style="flex:1.4;">
+        <div class="card" style="color:#4f9cf9">
+          <h3>Google 未開放官方 API</h3>
+          <p>MCP 透過瀏覽器自動化遠端控制，突破限制。</p>
+        </div>
+        <div class="card" style="color:#4f9cf9">
+          <h3>支援 11 種資料來源</h3>
+          <p>URL、YouTube、PDF、Google Drive 等，全部自動上傳。</p>
+        </div>
+        <div class="card" style="color:#4f9cf9">
+          <h3>10 分鐘完成安裝</h3>
+          <p>安裝 → 登入 → 設定 → 重啟，馬上可用。</p>
+        </div>
+      </div>
+      <div style="flex:0.6; display:flex; align-items:center; justify-content:center;">
+        <img src="slides/slide_workflow_20260526_102315.png"
+             style="width:100%; border-radius:14px; box-shadow:0 8px 32px rgba(45,212,191,0.2);">
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 情境一 -->
+  <div class="slide" id="s4">
+    <div class="scenario-badge" style="color:#4f9cf9">情境 01</div>
+    <div class="slide-title" style="color:#4f9cf9">自動建立筆記本與資料上傳</div>
+    <div class="slide-sub">以前要手動一步一步操作的事，現在一行指令全搞定</div>
+
+    <div class="step">
+      <div class="step-num" style="background:#4f9cf9">1</div>
+      <div class="step-body">
+        <h3>輸入研究主題或 URL</h3>
+        <p>告訴 Claude Code 你要研究的內容或貼上連結</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#4f9cf9">2</div>
+      <div class="step-body">
+        <h3>自動在 NotebookLM 建立筆記本</h3>
+        <p>Claude Code 自動幫你新增一個對應主題的筆記本</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#4f9cf9">3</div>
+      <div class="step-body">
+        <h3>批次上傳所有資料來源</h3>
+        <p>支援 URL、YouTube、PDF、Google Drive 等 11 種格式，自動批次上傳</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#2dd4bf">4</div>
+      <div class="step-body">
+        <h3>NotebookLM 完成索引，準備分析</h3>
+        <p>Gemini 自動處理所有資料，隨時可以開始提問與生成內容</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 情境二 -->
+  <div class="slide" id="s5">
+    <div class="scenario-badge" style="color:#2dd4bf">情境 02</div>
+    <div class="slide-title" style="color:#2dd4bf">多媒體內容自動生成</div>
+    <div class="slide-sub">所有生成皆由 Google Gemini 伺服器完成 — 零額外費用</div>
+
+    <div style="display:flex; gap:28px; align-items:flex-start;">
+      <div style="flex:0.55; display:flex; align-items:center; justify-content:center; padding-top:8px;">
+        <img src="slides/slide_multimedia_20260526_102313.png"
+             style="width:100%; border-radius:14px; box-shadow:0 8px 32px rgba(45,212,191,0.22);">
+      </div>
+      <div style="flex:1;">
+    <div class="grid-5" style="margin-top: 10px;">
+      <div class="output-card" style="color:#4f9cf9">
+        <div class="icon">🎙️</div>
+        <div class="name">Podcast</div>
+        <div class="sub">深度 / 簡報 / 評論 / 辯論<br>4 種格式</div>
+      </div>
+      <div class="output-card" style="color:#a78bfa">
+        <div class="icon">🎬</div>
+        <div class="name">影片總覽</div>
+        <div class="sub">Video Overview</div>
+      </div>
+      <div class="output-card" style="color:#2dd4bf">
+        <div class="icon">📊</div>
+        <div class="name">投影片</div>
+        <div class="sub">Slide Deck</div>
+      </div>
+      <div class="output-card" style="color:#fbbf24">
+        <div class="icon">📖</div>
+        <div class="name">學習指南</div>
+        <div class="sub">Study Guide</div>
+      </div>
+      <div class="output-card" style="color:#f472b6">
+        <div class="icon">📝</div>
+        <div class="name">測驗 & 閃卡</div>
+        <div class="sub">Quiz & Flashcards</div>
+      </div>
+      <div class="output-card" style="color:#4f9cf9">
+        <div class="icon">🧠</div>
+        <div class="name">心智圖</div>
+        <div class="sub">Mind Map</div>
+      </div>
+      <div class="output-card" style="color:#2dd4bf">
+        <div class="icon">📈</div>
+        <div class="name">資訊圖</div>
+        <div class="sub">Infographic</div>
+      </div>
+      <div class="output-card" style="color:#a78bfa">
+        <div class="icon">📄</div>
+        <div class="name">研究報告</div>
+        <div class="sub">Research Report</div>
+      </div>
+      <div class="output-card" style="color:#fbbf24">
+        <div class="icon">💡</div>
+        <div class="name">重點摘要</div>
+        <div class="sub">Briefing Doc</div>
+      </div>
+      <div class="output-card" style="color:#f472b6">
+        <div class="icon">❓</div>
+        <div class="name">FAQ</div>
+        <div class="sub">常見問答</div>
+      </div>
+    </div>
+    </div><!-- flex:1 -->
+  </div><!-- flex container -->
+  </div><!-- slide -->
+
+  <!-- 6. 情境三 -->
+  <div class="slide" id="s6">
+    <div class="scenario-badge" style="color:#a78bfa">情境 03</div>
+    <div class="slide-title" style="color:#a78bfa">知識自動沉澱到 Obsidian</div>
+    <div class="slide-sub">打造隨時間成長的個人 AI 第二大腦</div>
+
+    <div class="grid-2">
+      <div>
+        <div class="card" style="color:#a78bfa; margin-bottom: 16px;">
+          <h3>Markdown 格式存儲</h3>
+          <p>永久可讀，不綁定任何服務，資料完全屬於你。</p>
+        </div>
+        <div class="card" style="color:#a78bfa; margin-bottom: 16px;">
+          <h3>雙向鏈接（[[連結]]）</h3>
+          <p>建立知識網絡，實現跨文件的意外發現與連結。</p>
+        </div>
+        <div class="card" style="color:#a78bfa;">
+          <h3>分析結論自動回存</h3>
+          <p>Claude 分析完畢後，直接寫入 Obsidian，無需手動複製貼上。</p>
+        </div>
+      </div>
+      <div>
+        <div style="background:#112240; border-radius:10px; padding:24px;">
+          <p style="color:#7a99c4; font-size:13px; margin-bottom:16px;">自動化流程</p>
+          <div class="flow">
+            <span class="flow-step" style="background:rgba(79,156,249,0.15); color:#4f9cf9">輸入資料</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step" style="background:rgba(45,212,191,0.15); color:#2dd4bf">NotebookLM 分析</span>
+          </div>
+          <div class="flow">
+            <span class="flow-step" style="background:rgba(167,139,250,0.15); color:#a78bfa">提取洞見</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step" style="background:rgba(251,191,36,0.15); color:#fbbf24">寫入 Obsidian</span>
+          </div>
+          <div class="flow">
+            <span class="flow-step" style="background:rgba(45,212,191,0.15); color:#2dd4bf">建立雙向鏈接</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step" style="background:rgba(167,139,250,0.15); color:#a78bfa">知識圖譜成長</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. 情境四 -->
+  <div class="slide" id="s7">
+    <div class="scenario-badge" style="color:#fbbf24">情境 04</div>
+    <div class="slide-title" style="color:#fbbf24">自動同步備份到 GitHub</div>
+    <div class="slide-sub">讓你的知識庫永遠安全、隨時可取用</div>
+
+    <div class="grid-2">
+      <div class="card" style="color:#fbbf24; margin-bottom: 16px;">
+        <h3>⭐ 知識版本控制</h3>
+        <p>每次更新都有歷史記錄，隨時可回溯任何時間點的知識狀態，不怕誤刪。</p>
+      </div>
+      <div class="card" style="color:#4f9cf9;">
+        <h3>⭐ 多設備無縫同步</h3>
+        <p>在家、辦公室、手機，任何裝置都能取得最新的知識庫，隨時隨地可用。</p>
+      </div>
+      <div class="card" style="color:#2dd4bf;">
+        <h3>⭐ 團隊協作共享</h3>
+        <p>一鍵分享整個知識庫給同事，讓大家站在同一個知識基礎上，減少重複工作。</p>
+      </div>
+      <div class="card" style="color:#a78bfa;">
+        <h3>⭐ 永久備份保護</h3>
+        <p>資料不依賴單一服務，即使 NotebookLM 或 Obsidian 失效，資料也不會遺失。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. 情境五 -->
+  <div class="slide" id="s8">
+    <div class="scenario-badge" style="color:#f472b6">情境 05</div>
+    <div class="slide-title" style="color:#f472b6">一鍵全自動完整流程</div>
+    <div class="slide-sub">重複操作完全消失，時間完全解放</div>
+
+    <div style="margin-bottom: 20px;">
+      <p style="color:#7a99c4; font-size:13px; margin-bottom:10px;">📚 一鍵備課流程</p>
+      <div class="flow">
+        <span class="flow-step" style="background:rgba(244,114,182,0.15); color:#f472b6">輸入 URL</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step" style="background:rgba(79,156,249,0.15); color:#4f9cf9">自動建立筆記本</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step" style="background:rgba(45,212,191,0.15); color:#2dd4bf">批次上傳資料</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step" style="background:rgba(167,139,250,0.15); color:#a78bfa">生成完整教材</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step" style="background:rgba(251,191,36,0.15); color:#fbbf24">下載到本地</span>
+      </div>
+    </div>
+
+    <div>
+      <p style="color:#7a99c4; font-size:13px; margin-bottom:10px;">✍️ 文章發佈自動化</p>
+      <div class="flow">
+        <span class="flow-step" style="background:rgba(244,114,182,0.15); color:#f472b6">寫完文章</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step" style="background:rgba(79,156,249,0.15); color:#4f9cf9">自動建立筆記本</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step" style="background:rgba(45,212,191,0.15); color:#2dd4bf">上傳文章 URL</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step" style="background:rgba(167,139,250,0.15); color:#a78bfa">觸發音檔生成</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step" style="background:rgba(251,191,36,0.15); color:#fbbf24">背景自動完成</span>
+      </div>
+    </div>
+
+    <div style="margin-top: 24px; padding: 16px 24px; background:#112240; border-radius:10px; border-left: 4px solid #f472b6;">
+      <p style="color:#f472b6; font-weight:700; font-size:15px;">✅ 效果：以前需要 30 分鐘的重複操作，現在一行指令，背景自動完成。</p>
+    </div>
+  </div>
+
+  <!-- 9. 數據優勢 -->
+  <div class="slide" id="s9">
+    <div class="slide-title">關鍵數據優勢</div>
+    <div class="slide-sub">三大核心優勢，讓整套工作流更聰明、更省錢</div>
+
+    <div class="grid-3">
+      <div class="stat-card" style="color:#4f9cf9">
+        <div class="big-num" style="color:#4f9cf9">30%</div>
+        <div class="big-label">Token 節省</div>
+        <div class="big-desc">
+          NotebookLM 作為壓縮層<br>
+          原本 18 萬 Token 的文件<br>
+          只回傳 1,500–3,000 Token<br>
+          大幅降低 API 費用
+        </div>
+      </div>
+      <div class="stat-card" style="color:#2dd4bf">
+        <div class="big-num" style="color:#2dd4bf">$0</div>
+        <div class="big-label">生成成本</div>
+        <div class="big-desc">
+          Podcast、影片、投影片<br>
+          心智圖、資訊圖…<br>
+          全部由 Google Gemini<br>
+          伺服器處理，完全免費
+        </div>
+      </div>
+      <div class="stat-card" style="color:#fbbf24">
+        <div class="big-num" style="color:#fbbf24">零</div>
+        <div class="big-label">幻覺引用</div>
+        <div class="big-desc">
+          每個答案都附帶<br>
+          原文來源引用<br>
+          可驗證、可追溯<br>
+          準確可信
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. 安裝步驟 -->
+  <div class="slide" id="s10">
+    <div class="slide-title">10 分鐘快速上手</div>
+    <div class="slide-sub">安裝 notebooklm-mcp-cli，讓 Claude Code 獲得控制 NotebookLM 的能力</div>
+    <div style="display:flex; gap:36px; align-items:center;">
+      <div style="flex:1;">
+        <div class="step">
+          <div class="step-num" style="background:#4f9cf9">1</div>
+          <div class="step-body">
+            <h3>安裝 uv 套件管理器</h3>
+            <p>Python 套件管理工具，是後續安裝的前置需求</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num" style="background:#2dd4bf">2</div>
+          <div class="step-body">
+            <h3 style="font-family: monospace;">uv tool install notebooklm-mcp-cli</h3>
+            <p>安裝 MCP 工具，內含 35 個 NotebookLM 控制指令</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num" style="background:#a78bfa">3</div>
+          <div class="step-body">
+            <h3 style="font-family: monospace;">nlm login</h3>
+            <p>開啟瀏覽器登入 Google 帳號，單次設定，會話持續數週</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num" style="background:#fbbf24">4</div>
+          <div class="step-body">
+            <h3 style="font-family: monospace;">nlm setup add claude-code</h3>
+            <p>自動修改 Claude Code 設定檔，啟用 MCP 連線</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num" style="background:#f472b6">5</div>
+          <div class="step-body">
+            <h3>重啟 Claude Code，完成！</h3>
+            <p>現在可以對 Claude Code 說「幫我在 NotebookLM 建立一個筆記本」</p>
+          </div>
+        </div>
+      </div>
+      <div style="flex:0.7; display:flex; align-items:center; justify-content:center;">
+        <img src="slides/slide_install_20260526_102408.png"
+             style="width:100%; border-radius:14px; box-shadow:0 8px 32px rgba(79,156,249,0.2);">
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. 核心價值 -->
+  <div class="slide" id="s11">
+    <div class="slide-title">核心價值：知識的複利</div>
+    <div class="slide-sub">這套工作流真正的目標不是「更快」，而是「更聰明地累積」</div>
+    <div style="display:flex; gap:40px; align-items:center;">
+      <div style="flex:1.2;">
+        <div class="quote">
+          "目標不是更快生成內容，<br>而是知識的複利"
+        </div>
+        <div class="grid-3">
+          <div class="card" style="color:#7a99c4; text-align:center;">
+            <h3 style="margin-bottom: 12px;">❌ 以前</h3>
+            <p>每次從零開始<br>手動操作各種工具<br>知識無法累積</p>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:center;">
+            <span style="font-size:32px; color:#2dd4bf;">→</span>
+          </div>
+          <div class="card" style="color:#fbbf24; text-align:center;">
+            <h3 style="margin-bottom: 12px;">✅ 現在</h3>
+            <p>AI 自動幫你累積知識<br>系統越用越聰明<br>複利越滾越大</p>
+          </div>
+        </div>
+      </div>
+      <div style="flex:0.8; display:flex; align-items:center; justify-content:center;">
+        <img src="slides/slide_compound_20260526_102328.png"
+             style="width:100%; border-radius:16px; box-shadow:0 8px 40px rgba(251,191,36,0.2);">
+      </div>
+    </div>
+  </div>
+
+  <!-- 12. 結語 -->
+  <div class="slide" id="s12" style="background: linear-gradient(135deg, #071428 60%, #0d1f3c); text-align:center; align-items:center;">
+    <div style="font-size:16px; color:#7a99c4; margin-bottom: 16px;">開始打造你的</div>
+    <div style="font-size:52px; font-weight:900; margin-bottom: 20px;">AI 知識系統</div>
+
+    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom: 40px;">
+      <span style="color:#4f9cf9; font-weight:700;">Claude Code</span>
+      <span style="color:#7a99c4;">×</span>
+      <span style="color:#2dd4bf; font-weight:700;">NotebookLM</span>
+      <span style="color:#7a99c4;">×</span>
+      <span style="color:#a78bfa; font-weight:700;">Obsidian</span>
+      <span style="color:#7a99c4;">×</span>
+      <span style="color:#fbbf24; font-weight:700;">GitHub</span>
+    </div>
+
+    <a href="https://www.youtube.com/watch?v=hr6pgjEUFj4" target="_blank"
+       style="display:inline-block; padding:14px 40px; background:#4f9cf9; color:#0a1628;
+              border-radius:8px; font-weight:700; font-size:16px; text-decoration:none;
+              margin-bottom: 20px;">
+      ▶ 立即觀看影片
+    </a>
+
+    <div style="color:#7a99c4; font-size:13px;">Claude基本功 EP04 · 知識的複利，從今天開始</div>
+  </div>
+
+</div><!-- end .slides -->
+
+<!-- Navigation -->
+<div class="nav">
+  <button id="prev" onclick="changeSlide(-1)" disabled>← 上一頁</button>
+  <span class="page-info" id="page-info">1 / 12</span>
+  <button id="next" onclick="changeSlide(1)">下一頁 →</button>
+</div>
+
+<script>
+  const total = 12;
+  let current = 1;
+
+  function changeSlide(dir) {
+    document.getElementById('s' + current).classList.remove('active');
+    current = Math.max(1, Math.min(total, current + dir));
+    document.getElementById('s' + current).classList.add('active');
+    document.getElementById('page-info').textContent = current + ' / ' + total;
+    document.getElementById('prev').disabled = current === 1;
+    document.getElementById('next').disabled = current === total;
+    document.getElementById('progress').style.width = (current / total * 100) + '%';
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                    changeSlide(-1);
+  });
+
+  // init progress
+  document.getElementById('progress').style.width = (1 / total * 100) + '%';
+</script>
+
+</body>
+</html>
