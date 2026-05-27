@@ -3,44 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>華興工業｜AI 工具內部教學 — Claude Code × NotebookLM</title>
+<title>華興工業｜AI 工具內部教學 — Claude Code × NotebookLM（深色版）</title>
 <style>
-/* ══ CSS 自訂屬性：淺色主題 ══ */
+/* ══ CSS 自訂屬性：深色主題 ══ */
 :root {
-  --bg-body:   #EEF2FF;
-  --bg-slide:  #FFFFFF;
-  --bg-card:   #F8FAFF;
-  --bg-quote:  #FFFBEB;
-  --bg-badge:  #EEF2FF;
-  --bg-cover:  linear-gradient(135deg,#EEF2FF 0%,#F0FFFE 60%,#FAF5FF 100%);
-  --bg-close:  linear-gradient(135deg,#EEF2FF 0%,#FAF5FF 100%);
-  --bg-warn:   #FFF0F6;
-  --text-h:    #1E293B;
-  --text-body: #475569;
-  --text-muted:#64748B;
-  --text-faint:#94A3B8;
-  --border:    #E2E8F0;
-  --pill-def:  #EEF2FF;
-  --pill-blue: #DBEAFE;
-  --pill-teal: #CFFAFE;
-  --pill-pur:  #EDE9FE;
-  --pill-amb:  #FEF3C7;
-  --pill-pink: #FCE7F3;
-  --nav-bg:    rgba(255,255,255,0.92);
-  --nav-btn:   #EEF2FF;
-  --nav-hover: #DBEAFE;
-  --nav-color: #2563EB;
-  --nav-bdr:   #2563EB;
-  --sh-card:   0 1px 6px rgba(37,99,235,0.07);
-  --sh-box:    0 2px 10px rgba(37,99,235,0.10);
-  --sh-nav:    0 2px 16px rgba(37,99,235,0.12);
-  --blue:   #2563EB;
-  --teal:   #0891B2;
-  --purple: #7C3AED;
-  --amber:  #D97706;
-  --pink:   #DB2777;
-  --gray:   #94A3B8;
-  --badge-bg: rgba(255,255,255,0.7);
+  --bg-body:   #0F172A;
+  --bg-slide:  #1E293B;
+  --bg-card:   #263347;
+  --bg-quote:  #1C1500;
+  --bg-badge:  #1E2F4F;
+  --bg-cover:  linear-gradient(135deg,#0F172A 0%,#0C1A2E 60%,#1A0E2E 100%);
+  --bg-close:  linear-gradient(135deg,#0F172A 0%,#1A0E2E 100%);
+  --bg-warn:   #3B0A1C;
+  --text-h:    #F1F5F9;
+  --text-body: #CBD5E1;
+  --text-muted:#94A3B8;
+  --text-faint:#64748B;
+  --border:    #334155;
+  --pill-def:  #263347;
+  --pill-blue: #1E3A5F;
+  --pill-teal: #0C3344;
+  --pill-pur:  #2D1B69;
+  --pill-amb:  #451A03;
+  --pill-pink: #500724;
+  --nav-bg:    rgba(15,23,42,0.93);
+  --nav-btn:   #263347;
+  --nav-hover: #334155;
+  --nav-color: #60A5FA;
+  --nav-bdr:   #3B82F6;
+  --sh-card:   0 1px 6px rgba(0,0,0,0.3);
+  --sh-box:    0 2px 10px rgba(0,0,0,0.4);
+  --sh-nav:    0 2px 16px rgba(0,0,0,0.5);
+  --blue:   #60A5FA;
+  --teal:   #22D3EE;
+  --purple: #A78BFA;
+  --amber:  #FCD34D;
+  --pink:   #F472B6;
+  --gray:   #64748B;
+  --badge-bg: rgba(30,41,59,0.8);
 }
 
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -125,7 +125,7 @@ body {
   display:flex; align-items:flex-start; gap:14px;
   padding:14px 18px; background:var(--bg-card);
   border-radius:10px; margin-bottom:10px;
-  box-shadow:0 1px 4px rgba(37,99,235,0.06);
+  box-shadow:0 1px 4px rgba(0,0,0,0.2);
 }
 .snum {
   width:30px; height:30px; border-radius:50%;
@@ -146,7 +146,7 @@ body {
   display:flex; align-items:center; flex-wrap:wrap; gap:6px;
   padding:16px 20px; background:var(--bg-card);
   border-radius:10px; margin-bottom:10px;
-  box-shadow:0 1px 4px rgba(37,99,235,0.06);
+  box-shadow:0 1px 4px rgba(0,0,0,0.2);
 }
 .fp {
   padding:5px 13px; border-radius:20px;
@@ -205,7 +205,7 @@ body {
 .rside { flex:0.7; display:flex; align-items:center; justify-content:center; }
 .req   { flex:1; }
 
-.simg { width:100%; border-radius:14px; }
+.simg { width:100%; border-radius:14px; border:1px solid var(--border); }
 
 /* ── Slide-specific ── */
 #s1 { background:var(--bg-cover); }
@@ -253,15 +253,12 @@ body {
   .sbody h3{ font-size:12px; }
   .sbody p { font-size:11px; }
   .step    { padding:10px 14px; margin-bottom:8px; }
-  /* Row → column */
   .row     { flex-direction:column; gap:14px; }
   .rside.hm{ display:none; }
   .rside,.rmain,.req { flex:none; width:100%; }
-  /* Grids */
   .g2      { grid-template-columns:1fr; gap:10px; }
   .g3      { grid-template-columns:1fr; gap:10px; }
   .g5      { grid-template-columns:repeat(3,1fr); gap:8px; }
-  /* Tool flow scroll */
   .tflow   { overflow-x:auto; }
   .tbox    { min-width:70px; padding:10px 8px; }
   .tbox .tn{ font-size:11px; }
@@ -271,7 +268,6 @@ body {
   .ocard .ic{ font-size:16px; }
   .ocard .nm{ font-size:10px; }
   .ocard .sb{ display:none; }
-  /* Nav */
   .nav     { bottom:10px; padding:7px 12px; gap:8px; }
   .nbtn    { padding:8px 14px; font-size:12px; min-height:36px; }
   .pinfo   { font-size:12px; min-width:40px; }
@@ -304,7 +300,7 @@ body {
     </div>
     <div class="req rside hm">
       <img src="slides/cover_v2_20260526_172510.png" class="simg"
-           style="box-shadow:0 8px 32px rgba(37,99,235,0.15);">
+           style="box-shadow:0 8px 32px rgba(96,165,250,0.2);">
     </div>
   </div>
 </div>
@@ -324,7 +320,7 @@ body {
     </div>
     <div class="rside hm" style="flex:0.65;">
       <img src="slides/pain_v2_20260526_172433.png" class="simg"
-           style="box-shadow:0 4px 20px rgba(219,39,119,0.12);">
+           style="box-shadow:0 4px 20px rgba(244,114,182,0.2);">
     </div>
   </div>
 </div>
@@ -349,7 +345,7 @@ body {
     </div>
     <div class="rside hm" style="flex:0.55;">
       <img src="slides/workflow_v2_20260526_172441.png" class="simg"
-           style="box-shadow:0 4px 20px rgba(8,145,178,0.14);">
+           style="box-shadow:0 4px 20px rgba(34,211,238,0.2);">
     </div>
   </div>
 </div>
@@ -373,7 +369,7 @@ body {
   <div class="row top">
     <div class="rside hm" style="flex:0.5;">
       <img src="slides/multimedia_v2_20260526_172454.png" class="simg"
-           style="box-shadow:0 4px 20px rgba(8,145,178,0.15);">
+           style="box-shadow:0 4px 20px rgba(34,211,238,0.2);">
     </div>
     <div style="flex:1;">
       <div class="g5">
@@ -482,7 +478,7 @@ body {
     </div>
     <div class="rside hm" style="flex:0.65;">
       <img src="slides/install_v2_20260526_172505.png" class="simg"
-           style="box-shadow:0 4px 20px rgba(37,99,235,0.14);">
+           style="box-shadow:0 4px 20px rgba(96,165,250,0.2);">
     </div>
   </div>
 </div>
@@ -502,7 +498,7 @@ body {
     </div>
     <div class="rside hm" style="flex:0.75;">
       <img src="slides/compound_v2_20260526_172559.png" class="simg"
-           style="box-shadow:0 4px 24px rgba(217,119,6,0.15);">
+           style="box-shadow:0 4px 24px rgba(252,211,77,0.2);">
     </div>
   </div>
 </div>
@@ -530,7 +526,7 @@ body {
   <button class="nbtn" id="prev" onclick="go(-1)" disabled>← 上一頁</button>
   <span class="pinfo" id="pinfo">1 / 12</span>
   <button class="nbtn" id="next" onclick="go(1)">下一頁 →</button>
-  <a href="dark.html" class="tlink">🌙 深色版</a>
+  <a href="index.html" class="tlink">☀️ 淺色版</a>
 </div>
 
 <script>
