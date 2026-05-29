@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 420" font-family="'Microsoft JhengHei','PingFang TC',sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0,9 3.5,0 7" fill="#2980B9"/>
+    </marker>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1A3A5C"/>
+      <stop offset="100%" style="stop-color:#264E73"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1F618D"/>
+      <stop offset="100%" style="stop-color:#2980B9"/>
+    </linearGradient>
+    <linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1A5276"/>
+      <stop offset="100%" style="stop-color:#2471A3"/>
+    </linearGradient>
+    <linearGradient id="g4" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1E8449"/>
+      <stop offset="100%" style="stop-color:#27AE60"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="700" height="420" fill="#F7F9FC" rx="12"/>
+
+  <!-- 標題 -->
+  <text x="350" y="28" text-anchor="middle" font-size="16" font-weight="700" fill="#1A3A5C">建議導入架構</text>
+
+  <!-- Layer 1: Gmail -->
+  <rect x="80" y="50" width="540" height="72" rx="10" fill="url(#g1)"/>
+  <text x="170" y="75" font-size="11" font-weight="700" fill="rgba(255,255,255,0.7)" letter-spacing="1">觸 發 層</text>
+  <text x="350" y="98" text-anchor="middle" font-size="18" font-weight="700" fill="white">📧 Gmail（Google Workspace）</text>
+  <text x="350" y="115" text-anchor="middle" font-size="12" fill="rgba(255,255,255,0.8)">n8n 監控信箱，收到客戶訂單後自動觸發流程</text>
+
+  <!-- Arrow 1 -->
+  <line x1="350" y1="122" x2="350" y2="148" stroke="#2980B9" stroke-width="2.5" marker-end="url(#arr)"/>
+  <rect x="290" y="128" width="120" height="20" rx="4" fill="#D6EAF8"/>
+  <text x="350" y="143" text-anchor="middle" font-size="11" fill="#1A5276">n8n 自動觸發</text>
+
+  <!-- Layer 2: AI -->
+  <rect x="80" y="158" width="540" height="72" rx="10" fill="url(#g2)"/>
+  <text x="170" y="183" font-size="11" font-weight="700" fill="rgba(255,255,255,0.7)" letter-spacing="1">理 解 層</text>
+  <text x="350" y="206" text-anchor="middle" font-size="18" font-weight="700" fill="white">🧠 LLM（Claude / GPT）</text>
+  <text x="350" y="223" text-anchor="middle" font-size="12" fill="rgba(255,255,255,0.8)">讀懂訂單語意：計價單位、包裝階層、子訂單邊界</text>
+
+  <!-- Arrow 2 -->
+  <line x1="350" y1="230" x2="350" y2="256" stroke="#2980B9" stroke-width="2.5" marker-end="url(#arr)"/>
+  <rect x="278" y="236" width="144" height="20" rx="4" fill="#D6EAF8"/>
+  <text x="350" y="251" text-anchor="middle" font-size="11" fill="#1A5276">輸出結構化資料</text>
+
+  <!-- Layer 3: Human Review -->
+  <rect x="80" y="266" width="540" height="72" rx="10" fill="url(#g3)"/>
+  <text x="170" y="291" font-size="11" font-weight="700" fill="rgba(255,255,255,0.7)" letter-spacing="1">確 認 層</text>
+  <text x="350" y="314" text-anchor="middle" font-size="18" font-weight="700" fill="white">👤 人工確認（Google Sheets）</text>
+  <text x="350" y="331" text-anchor="middle" font-size="12" fill="rgba(255,255,255,0.8)">AI 解析結果呈現於試算表，人員審核確認後方可輸入</text>
+
+  <!-- Arrow 3 -->
+  <line x1="350" y1="338" x2="350" y2="364" stroke="#27AE60" stroke-width="2.5" marker-end="url(#arr)"/>
+  <rect x="278" y="344" width="144" height="20" rx="4" fill="#D5F5E3"/>
+  <text x="350" y="359" text-anchor="middle" font-size="11" fill="#1E8449">確認無誤後執行</text>
+
+  <!-- Layer 4: ERP -->
+  <rect x="80" y="374" width="540" height="36" rx="10" fill="url(#g4)"/>
+  <text x="350" y="397" text-anchor="middle" font-size="16" font-weight="700" fill="white">⚙️ ERP API / 批次匯入</text>
+</svg>

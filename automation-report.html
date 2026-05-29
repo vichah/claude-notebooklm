@@ -585,6 +585,7 @@
       </div>
     </div>
     <div class="slide-body">
+      <img src="slides/generated/slide03_painflow.svg" class="slide-img" style="max-height:180px; object-fit:contain; background:#F7F9FC; border-radius:10px; border:1px solid var(--border);" alt="訂單處理痛點流程圖">
       <div class="pain-list">
         <div class="pain-item">
           <div class="pain-num">痛點 1</div>
@@ -672,11 +673,11 @@
       <div class="three-col">
         <div class="card" style="border-top: 4px solid #C0392B;">
           <div style="text-align:center; margin-bottom: 12px;">
-            <div style="font-size: 32px;">🤖</div>
-            <div style="font-size: 15px; font-weight: 800; color: var(--navy); margin-top: 6px;">RPA 工具</div>
+            <img src="https://cdn.simpleicons.org/uipath/C0392B" width="36" height="36" alt="UiPath" style="margin-bottom:4px;">
+            <div style="font-size: 15px; font-weight: 800; color: var(--navy); margin-top: 4px;">RPA 工具</div>
             <div style="font-size: 11px; color: var(--text-light); margin-top: 2px;">機器人流程自動化</div>
           </div>
-          <div style="font-size: 12px; color: var(--text); line-height: 1.7;">
+          <div style="font-size: 13px; color: var(--text); line-height: 1.7;">
             <div>代表：UiPath、Power Automate Desktop</div>
             <div style="margin-top: 8px;"><strong>核心能力：</strong>模擬人工操作畫面（點擊、鍵入）</div>
             <div style="margin-top: 4px;"><strong>適合：</strong>固定格式的重複性作業</div>
@@ -684,11 +685,11 @@
         </div>
         <div class="card" style="border-top: 4px solid #2980B9;">
           <div style="text-align:center; margin-bottom: 12px;">
-            <div style="font-size: 32px;">🔗</div>
-            <div style="font-size: 15px; font-weight: 800; color: var(--navy); margin-top: 6px;">工作流程自動化</div>
+            <img src="https://cdn.simpleicons.org/n8n/ea4b71" width="36" height="36" alt="n8n" style="margin-bottom:4px;">
+            <div style="font-size: 15px; font-weight: 800; color: var(--navy); margin-top: 4px;">工作流程自動化</div>
             <div style="font-size: 11px; color: var(--text-light); margin-top: 2px;">Workflow Automation</div>
           </div>
-          <div style="font-size: 12px; color: var(--text); line-height: 1.7;">
+          <div style="font-size: 13px; color: var(--text); line-height: 1.7;">
             <div>代表：n8n、Make.com、Zapier</div>
             <div style="margin-top: 8px;"><strong>核心能力：</strong>串接不同系統的 API</div>
             <div style="margin-top: 4px;"><strong>適合：</strong>讓資料在系統之間自動流動</div>
@@ -696,11 +697,11 @@
         </div>
         <div class="card" style="border-top: 4px solid #1E8449;">
           <div style="text-align:center; margin-bottom: 12px;">
-            <div style="font-size: 32px;">🧠</div>
-            <div style="font-size: 15px; font-weight: 800; color: var(--navy); margin-top: 6px;">AI 軟體工具</div>
+            <img src="https://cdn.simpleicons.org/openai/1E8449" width="36" height="36" alt="OpenAI" style="margin-bottom:4px;">
+            <div style="font-size: 15px; font-weight: 800; color: var(--navy); margin-top: 4px;">AI 軟體工具</div>
             <div style="font-size: 11px; color: var(--text-light); margin-top: 2px;">Large Language Model</div>
           </div>
-          <div style="font-size: 12px; color: var(--text); line-height: 1.7;">
+          <div style="font-size: 13px; color: var(--text); line-height: 1.7;">
             <div>代表：Claude、ChatGPT、EgentHub</div>
             <div style="margin-top: 8px;"><strong>核心能力：</strong>語意理解、文字生成</div>
             <div style="margin-top: 4px;"><strong>適合：</strong>讀懂非結構化訂單描述</div>
@@ -791,18 +792,29 @@
           </ul>
         </div>
       </div>
-      <table class="compare-table">
-        <thead>
-          <tr><th>比較項目</th><th>n8n</th><th>Make.com</th><th>Zapier</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>技術門檻</td><td class="tag-mid">中高</td><td class="tag-mid">中</td><td class="tag-good">低</td></tr>
-          <tr><td>資料安全（可自架）</td><td class="tag-good">✅ 可自架</td><td class="tag-bad">❌ 雲端</td><td class="tag-bad">❌ 雲端</td></tr>
-          <tr><td>Google Workspace 整合</td><td class="tag-good">✅ 完整</td><td class="tag-good">✅ 完整</td><td class="tag-good">✅ 完整</td></tr>
-          <tr><td>費用</td><td class="tag-good">自架免費</td><td class="tag-mid">中等</td><td class="tag-bad">複雜流程偏貴</td></tr>
-          <tr><td>建議對象</td><td>有技術支援的中小企業</td><td>進階非技術用戶</td><td>技術小白快速嘗試</td></tr>
-        </tbody>
-      </table>
+      <div class="with-image" style="grid-template-columns: 1fr 420px;">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>比較項目</th>
+              <th><img src="https://cdn.simpleicons.org/n8n/ffffff" width="14" height="14" style="vertical-align:middle; margin-right:4px;" alt="">n8n</th>
+              <th>Make.com</th>
+              <th><img src="https://cdn.simpleicons.org/zapier/ffffff" width="14" height="14" style="vertical-align:middle; margin-right:4px;" alt="">Zapier</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>技術門檻</td><td class="tag-mid">中高</td><td class="tag-mid">中</td><td class="tag-good">低</td></tr>
+            <tr><td>資料安全（可自架）</td><td class="tag-good">✅ 可自架</td><td class="tag-bad">❌ 雲端</td><td class="tag-bad">❌ 雲端</td></tr>
+            <tr><td>Google Workspace 整合</td><td class="tag-good">✅ 完整</td><td class="tag-good">✅ 完整</td><td class="tag-good">✅ 完整</td></tr>
+            <tr><td>費用</td><td class="tag-good">自架免費</td><td class="tag-mid">中等</td><td class="tag-bad">複雜流程偏貴</td></tr>
+            <tr><td>建議對象</td><td>有技術支援的中小企業</td><td>進階非技術用戶</td><td>技術小白快速嘗試</td></tr>
+          </tbody>
+        </table>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <img class="slide-img-side" src="slides/generated/slide07_n8n_screenshot.png" alt="n8n 工作流程介面" style="max-height:220px; border:2px solid var(--border);">
+          <div style="font-size:12px; color:var(--text-light); text-align:center;">n8n 工作流程編輯器實際介面</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -942,31 +954,7 @@
       </div>
     </div>
     <div class="slide-body">
-      <div class="arch-flow">
-        <div class="arch-block">
-          <div class="arch-block-title">觸發層</div>
-          <div class="arch-block-main">📧 Gmail（Google Workspace）</div>
-          <div class="arch-block-sub">n8n 監控信箱，收到客戶訂單後自動觸發流程</div>
-        </div>
-        <div class="arch-arrow">↓</div>
-        <div class="arch-block" style="background: #D5EEF8; border-color: var(--blue);">
-          <div class="arch-block-title">理解層</div>
-          <div class="arch-block-main">🧠 LLM（Claude / GPT）</div>
-          <div class="arch-block-sub">讀懂訂單語意，萃取計價單位、包裝階層、子訂單邊界，輸出結構化資料</div>
-        </div>
-        <div class="arch-arrow">↓</div>
-        <div class="arch-block" style="background: #D5F5E3; border-color: #A9DFBF;">
-          <div class="arch-block-title">確認層</div>
-          <div class="arch-block-main">👤 人工確認（Google Sheets）</div>
-          <div class="arch-block-sub">AI 解析結果呈現於 Google Sheets，由人員審核確認後，方可進入下一步</div>
-        </div>
-        <div class="arch-arrow">↓</div>
-        <div class="arch-block" style="background: #FDEBD0; border-color: #F5CBA7;">
-          <div class="arch-block-title">執行層</div>
-          <div class="arch-block-main">⚙️ ERP API / 批次匯入</div>
-          <div class="arch-block-sub">確認後的資料自動輸入 ERP 系統，完成訂單建立</div>
-        </div>
-      </div>
+      <img src="slides/generated/slide11_architecture.svg" class="slide-img" style="max-height:420px; object-fit:contain; background:#F7F9FC; border-radius:10px; border:1px solid var(--border);" alt="建議導入架構圖">
       <div class="alert alert-info" style="margin-top: 8px;">
         <span class="alert-icon">💡</span>
         <span>n8n 在整個流程中扮演「指揮中心」的角色，負責串接 Gmail、AI API、Google Sheets 與 ERP，並控制每個節點的資料流向。</span>
@@ -984,38 +972,7 @@
       </div>
     </div>
     <div class="slide-body">
-      <div class="timeline">
-        <div class="timeline-item">
-          <div>
-            <div class="timeline-badge">第一階段</div>
-            <div style="text-align:center; font-size:11px; color: var(--text-light); margin-top: 4px;">1～2 個月</div>
-          </div>
-          <div class="timeline-content">
-            <div class="timeline-title">🤝 習慣 AI 協作</div>
-            <div class="timeline-desc">選定一款桌面 AI 工具（建議 Claude Code 或 OpenAI Codex），讓業務與行政人員用於整理訂單摘要、起草英文報價信、翻譯技術規格文件。<strong>不需任何系統串接</strong>，純人工輔助使用，先建立人機協作習慣。</div>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <div>
-            <div class="timeline-badge" style="background: var(--blue);">第二階段</div>
-            <div style="text-align:center; font-size:11px; color: var(--text-light); margin-top: 4px;">1～3 個月</div>
-          </div>
-          <div class="timeline-content">
-            <div class="timeline-title">🔗 串接 Google Workspace</div>
-            <div class="timeline-desc">建置 n8n（建議自架）。設計 Gmail → n8n → AI → Google Sheets 流程：Gmail 收到訂單→ n8n 取出內容 → AI 解析 → 結果寫入 Google Sheets 供人員確認。確認正確後，人工進行 ERP 輸入。</div>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <div>
-            <div class="timeline-badge" style="background: #27AE60;">第三階段</div>
-            <div style="text-align:center; font-size:11px; color: var(--text-light); margin-top: 4px;">3～6 個月</div>
-          </div>
-          <div class="timeline-content">
-            <div class="timeline-title">⚙️ 連接 ERP 自動輸入</div>
-            <div class="timeline-desc">優先評估 ERP 是否有 API 可串接；若無，採用批次匯入（Excel/CSV）作為過渡方案；中長期可評估請 ERP 廠商開發客製介面模組。加入例外處理機制，AI 不確定時自動轉人工。</div>
-          </div>
-        </div>
-      </div>
+      <img src="slides/generated/slide12_roadmap.svg" class="slide-img" style="object-fit:contain; background:#F7F9FC; border-radius:10px; border:1px solid var(--border);" alt="三階段導入路線圖">
       <div class="alert alert-success">
         <span class="alert-icon">🎯</span>
         <span><strong>關鍵原則：</strong>先從「最痛的一個流程」開始，做出成果讓團隊感受到效益，後續推廣才有動力。不要試圖一次自動化所有流程。</span>
