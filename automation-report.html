@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自動化軟體分析與導入建議</title>
+<style>
+  :root {
+    --navy: #1A3A5C;
+    --blue: #2980B9;
+    --light-blue: #EBF5FB;
+    --mid-blue: #AED6F1;
+    --text: #2C3E50;
+    --text-light: #5D6D7E;
+    --green: #1E8449;
+    --red: #C0392B;
+    --orange: #D35400;
+    --bg: #F7F9FC;
+    --white: #FFFFFF;
+    --border: #D6E4F0;
+    --shadow: rgba(26,58,92,0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    background: #E8EEF4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  /* ── 進度條 ── */
+  #progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--blue), var(--navy));
+    transition: width 0.4s ease;
+    z-index: 999;
+  }
+
+  /* ── 頁碼 ── */
+  #slide-counter {
+    position: fixed;
+    bottom: 18px; right: 28px;
+    font-size: 13px;
+    color: var(--text-light);
+    background: rgba(255,255,255,0.85);
+    padding: 4px 12px;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+
+  /* ── 投影片容器 ── */
+  #slideshow {
+    width: 100%;
+    max-width: 960px;
+    position: relative;
+  }
+
+  .slide {
+    display: none;
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px var(--shadow);
+    min-height: 540px;
+    overflow: hidden;
+    animation: fadeIn 0.35s ease;
+  }
+  .slide.active { display: flex; flex-direction: column; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── 頁首 ── */
+  .slide-header {
+    background: linear-gradient(135deg, var(--navy) 0%, #264E73 100%);
+    color: white;
+    padding: 22px 40px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .slide-header .icon { font-size: 26px; }
+  .slide-header h2 { font-size: 22px; font-weight: 700; letter-spacing: 0.5px; }
+  .slide-header .subtitle { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+
+  /* ── 內容區 ── */
+  .slide-body {
+    padding: 32px 40px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* ── 封面 ── */
+  .cover {
+    background: linear-gradient(150deg, var(--navy) 0%, #1F5276 50%, #2980B9 100%);
+    color: white;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 540px;
+    gap: 0;
+  }
+  .cover-body {
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  .cover-icon { font-size: 64px; margin-bottom: 8px; }
+  .cover h1 { font-size: 34px; font-weight: 800; letter-spacing: 1px; line-height: 1.3; }
+  .cover p { font-size: 16px; opacity: 0.85; max-width: 500px; line-height: 1.6; }
+  .cover-meta {
+    margin-top: 24px;
+    display: flex;
+    gap: 32px;
+    font-size: 13px;
+    opacity: 0.75;
+  }
+  .cover-meta span { display: flex; align-items: center; gap: 6px; }
+
+  /* ── 目錄 ── */
+  .toc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .toc-item {
+    background: var(--light-blue);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--blue);
+    border-radius: 8px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .toc-num {
+    background: var(--navy);
+    color: white;
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .toc-item-text { font-size: 14px; color: var(--text); font-weight: 600; line-height: 1.4; }
+
+  /* ── 通用卡片 ── */
+  .card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── 痛點列表 ── */
+  .pain-list { display: flex; flex-direction: column; gap: 12px; }
+  .pain-item {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-left: 5px solid var(--blue);
+    border-radius: 8px;
+    padding: 14px 18px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .pain-num {
+    background: var(--blue);
+    color: white;
+    border-radius: 6px;
+    padding: 3px 9px;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .pain-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .pain-desc { font-size: 13px; color: var(--text-light); line-height: 1.6; }
+
+  /* ── 優缺點 ── */
+  .pros-cons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .pros, .cons {
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .pros { background: #F0FAF4; border: 1px solid #A9DFBF; }
+  .cons { background: #FDF2F2; border: 1px solid #F1A7A7; }
+  .pros h3 { color: var(--green); font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .cons h3 { color: var(--red); font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .check-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .check-list li { font-size: 13px; color: var(--text); line-height: 1.5; display: flex; gap: 8px; align-items: flex-start; }
+  .check-list li::before { flex-shrink: 0; margin-top: 1px; }
+  .pros .check-list li::before { content: '✅'; font-size: 12px; }
+  .cons .check-list li::before { content: '❌'; font-size: 12px; }
+
+  /* ── 警示框 ── */
+  .alert {
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 13px;
+    line-height: 1.6;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .alert-warn { background: #FEF9E7; border: 1px solid #F9CA45; color: #7D6608; }
+  .alert-info { background: var(--light-blue); border: 1px solid var(--mid-blue); color: #154360; }
+  .alert-success { background: #F0FAF4; border: 1px solid #A9DFBF; color: #1E8449; }
+  .alert-icon { font-size: 16px; flex-shrink: 0; }
+
+  /* ── 比較表 ── */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .compare-table th {
+    background: var(--navy);
+    color: white;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+  }
+  .compare-table th:first-child { border-radius: 6px 0 0 0; }
+  .compare-table th:last-child { border-radius: 0 6px 0 0; }
+  .compare-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  .compare-table tr:nth-child(even) td { background: var(--bg); }
+  .compare-table tr:hover td { background: var(--light-blue); }
+  .tag-good { color: var(--green); font-weight: 700; }
+  .tag-bad { color: var(--red); font-weight: 700; }
+  .tag-mid { color: var(--orange); font-weight: 700; }
+
+  /* ── 架構圖 ── */
+  .arch-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+    padding: 10px 0;
+  }
+  .arch-block {
+    background: var(--light-blue);
+    border: 2px solid var(--mid-blue);
+    border-radius: 10px;
+    padding: 14px 24px;
+    width: 100%;
+    max-width: 560px;
+    text-align: center;
+  }
+  .arch-block-title { font-size: 12px; color: var(--blue); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .arch-block-main { font-size: 16px; font-weight: 700; color: var(--navy); }
+  .arch-block-sub { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+  .arch-arrow { font-size: 22px; color: var(--blue); }
+
+  /* ── 時間軸 ── */
+  .timeline { display: flex; flex-direction: column; gap: 14px; }
+  .timeline-item { display: flex; gap: 16px; align-items: flex-start; }
+  .timeline-badge {
+    background: var(--navy);
+    color: white;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    text-align: center;
+    min-width: 80px;
+  }
+  .timeline-content { flex: 1; }
+  .timeline-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .timeline-desc { font-size: 13px; color: var(--text-light); line-height: 1.6; }
+
+  /* ── 策略卡片 ── */
+  .strategy-grid { display: flex; flex-direction: column; gap: 12px; }
+  .strategy-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-left: 5px solid var(--navy);
+    border-radius: 8px;
+    padding: 14px 18px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .strategy-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .strategy-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .strategy-desc { font-size: 13px; color: var(--text-light); line-height: 1.6; }
+
+  /* ── 工具選型表 ── */
+  .tool-grid { display: flex; flex-direction: column; gap: 10px; }
+  .tool-row {
+    display: grid;
+    grid-template-columns: 160px 120px 1fr;
+    gap: 12px;
+    align-items: center;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+  .tool-name { font-size: 14px; font-weight: 700; color: var(--navy); }
+  .tool-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+  }
+  .badge-yes { background: #D5F5E3; color: var(--green); }
+  .badge-no  { background: #FADBD8; color: var(--red); }
+  .badge-pending { background: #FEF9E7; color: #7D6608; }
+  .tool-desc { font-size: 13px; color: var(--text-light); }
+
+  /* ── 結論 ── */
+  .conclusion-box {
+    background: linear-gradient(135deg, var(--navy) 0%, #264E73 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 24px 28px;
+    text-align: center;
+  }
+  .conclusion-box h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+  .conclusion-box p { font-size: 14px; opacity: 0.9; line-height: 1.7; }
+
+  .action-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+  .action-item {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .action-item .num {
+    background: var(--blue);
+    color: white;
+    border-radius: 50%;
+    width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* ── 導航按鈕 ── */
+  #nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .nav-btn {
+    background: var(--white);
+    border: 2px solid var(--border);
+    color: var(--navy);
+    border-radius: 10px;
+    padding: 10px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-btn:hover:not(:disabled) {
+    background: var(--navy);
+    color: white;
+    border-color: var(--navy);
+  }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .nav-btn.primary {
+    background: var(--navy);
+    color: white;
+    border-color: var(--navy);
+  }
+  .nav-btn.primary:hover { background: #264E73; border-color: #264E73; }
+
+  /* ── 導覽點 ── */
+  #dots {
+    display: flex;
+    gap: 6px;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .dot.active { background: var(--navy); transform: scale(1.3); }
+
+  /* ── 二欄佈局 ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--blue);
+    margin-bottom: 4px;
+  }
+  h3.block-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tag {
+    display: inline-block;
+    background: var(--light-blue);
+    color: var(--navy);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+
+  .highlight-box {
+    background: linear-gradient(135deg, #EBF5FB, #D6EAF8);
+    border: 1px solid var(--mid-blue);
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+
+  .erp-method {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+  }
+  .erp-method-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .erp-method-desc { font-size: 12px; color: var(--text-light); line-height: 1.5; }
+
+  @media (max-width: 700px) {
+    .pros-cons, .two-col, .three-col, .toc-grid { grid-template-columns: 1fr; }
+    .slide-body { padding: 20px; }
+    .slide-header { padding: 16px 20px; }
+    .cover h1 { font-size: 26px; }
+    .tool-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="slide-counter"></div>
+
+<div id="slideshow">
+
+  <!-- ══ 封面 ══ -->
+  <div class="slide active cover">
+    <div class="cover-body">
+      <div class="cover-icon">🔧</div>
+      <h1>自動化軟體分析<br>與導入建議</h1>
+      <p>針對金屬扣件製造業（螺絲生產）的<br>辦公流程自動化工具評估與策略規劃</p>
+      <div class="cover-meta">
+        <span>🏭 金屬扣件製造業</span>
+        <span>📅 2026 年</span>
+        <span>📊 提報管理層參考</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 目錄 ══ -->
+  <div class="slide">
+    <div class="slide-header">
+      <span class="icon">📋</span>
+      <div>
+        <h2>報告目錄</h2>
+        <div class="subtitle">本次簡報共 16 頁</div>
+      </div>
+    </div>
+    <div class="slide-body">
+      <div class="toc-grid">
+        <div class="toc-item"><div class="toc-num">1</div><div class="toc-item-text">公司現況與核心痛點</div></div>
+        <div class="toc-item"><div class="toc-num">2</div><div class="toc-item-text">問題本質診斷</div></div>
+        <div class="toc-item"><div class="toc-num">3</div><div class="toc-item-text">三大工具類別總覽</div></div>
+        <div class="toc-item"><div class="toc-num">4</div><div class="toc-item-text">RPA 工具優缺點分析</div></div>
+        <div class="toc-item"><div class="toc-num">5</div><div class="toc-item-text">工作流程自動化平台分析</div></div>
+        <div class="toc-item"><div class="toc-num">6</div><div class="toc-item-text">AI 軟體工具分析</div></div>
+        <div class="toc-item"><div class="toc-num">7</div><div class="toc-item-text">三大工具綜合比較</div></div>
+        <div class="toc-item"><div class="toc-num">8</div><div class="toc-item-text">不採用 RPA 的建議理由</div></div>
+        <div class="toc-item"><div class="toc-num">9</div><div class="toc-item-text">建議導入架構</div></div>
+        <div class="toc-item"><div class="toc-num">10</div><div class="toc-item-text">三階段導入路線圖</div></div>
+        <div class="toc-item"><div class="toc-num">11</div><div class="toc-item-text">AI 導入核心策略</div></div>
+        <div class="toc-item"><div class="toc-num">12</div><div class="toc-item-text">ERP 串接方式選擇</div></div>
+        <div class="toc-item"><div class="toc-num">13</div><div class="toc-item-text">工具選型建議摘要</div></div>
+        <div class="toc-item"><div class="toc-num">14</div><div class="toc-item-text">結論與後續行動</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 公司現況 ══ -->
+  <div class="slide">
+    <div class="slide-header">
+      <span class="icon">🏭</span>
+      <div>
+        <h2>公司現況與核心痛點</h2>
+        <div class="subtitle">金屬扣件製造（螺絲生產）／使用 Google Workspace</div>
+      </div>
+    </div>
+    <div class="slide-body">
+      <div class="pain-list">
+        <div class="pain-item">
+          <div class="pain-num">痛點 1</div>
+          <div>
+            <div class="pain-title">訂單單位判斷問題（最複雜）</div>
+            <div class="pain-desc">客戶訂單以 M 數（公尺）表示，但前段製程用 M 數、熱處理後段以重量計價；ERP 輸入時需「讀懂」文字描述才能判斷計價單位是「盒」還是「M 數」，每位客戶表達方式各異。</div>
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-num">痛點 2</div>
+          <div>
+            <div class="pain-title">包裝階層計算問題</div>
+            <div class="pain-desc">相同螺絲因客戶包裝要求不同，影響材積、出貨箱數與運費。階層包含：幾M→小包裝→中包裝→棧板，每層數量皆不同且寫在訂單文字描述中，格式不固定。</div>
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-num">痛點 3</div>
+          <div>
+            <div class="pain-title">多子訂單拆分問題</div>
+            <div class="pain-desc">客戶一次傳送大份訂單，內含多筆子訂單，各子訂單頁數與筆數不固定，無法用固定規則拆分，需人工逐頁判斷邊界後分別輸入 ERP。</div>
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-num">痛點 4</div>
+          <div>
+            <div class="pain-title">客戶訂單格式完全不統一</div>
+            <div class="pain-desc">每位客戶的訂單格式、欄位名稱、計量方式皆不同，任何依賴固定格式的自動化工具均無法適應。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 問題本質 ══ -->
+  <div class="slide">
+    <div class="slide-header">
+      <span class="icon">🔍</span>
+      <div>
+        <h2>問題本質診斷</h2>
+        <div class="subtitle">為什麼一般自動化工具無法解決？</div>
+      </div>
+    </div>
+    <div class="slide-body">
+      <div class="highlight-box" style="text-align:center; margin-bottom: 4px;">
+        <div class="section-label">核心問題</div>
+        <div style="font-size: 20px; font-weight: 800; color: var(--navy); margin: 8px 0;">非結構化資料的語意理解</div>
+        <div style="font-size: 14px; color: var(--text-light);">訂單文字描述的「意思」需要被理解，而非僅複製特定位置的資料</div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">❌ 傳統工具的能力邊界</div>
+          <ul class="check-list cons" style="background:none; border:none; padding:0;">
+            <li>工作流程平台只能串接有 API 的系統，本身不懂語意</li>
+            <li>簡單規則引擎只能處理預先定義好的條件分支</li>
+            <li>任何依賴「固定格式、固定位置」的工具都無法適應</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">✅ 真正需要的技術組合</div>
+          <div style="font-size: 13px; line-height: 2; color: var(--text);">
+            <div>🧠 <strong>LLM（大型語言模型）</strong> → 讀懂語意、判斷單位與包裝結構</div>
+            <div>⚙️ <strong>規則引擎</strong> → 套用換算邏輯</div>
+            <div>👤 <strong>人工確認關卡</strong> → 確保 AI 判斷正確後才進 ERP</div>
+            <div>🔗 <strong>ERP API / 批次匯入</strong> → 執行最終資料輸入</div>
+          </div>
+        </div>
+      </div>
+      <div class="alert alert-info">
+        <span class="alert-icon">💡</span>
+        <span>這類問題在業界稱為「非結構化訂單資料擷取」，是目前製造業 AI 導入最熱門的應用場景，線材業、紡織業、化工業皆有類似情境。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 三大工具總覽 ══ -->
+  <div class="slide">
+    <div class="slide-header">
+      <span class="icon">🛠️</span>
+      <div>
+        <h2>三大工具類別總覽</h2>
+        <div class="subtitle">各類工具的核心定位與功能分工</div>
+      </div>
+    </div>
+    <div class="slide-body">
+      <div class="three-col">
+        <div class="card" style="border-top: 4px solid #C0392B;">
+          <div style="text-align:center; margin-bottom: 12px;">
+            <div style="font-size: 32px;">🤖</div>
+            <div style="font-size: 15px; font-weight: 800; color: var(--navy); margin-top: 6px;">RPA 工具</div>
+            <div style="font-size: 11px; color: var(--text-light); margin-top: 2px;">機器人流程自動化</div>
+          </div>
+          <div style="font-size: 12px; color: var(--text); line-height: 1.7;">
+            <div>代表：UiPath、Power Automate Desktop</div>
+            <div style="margin-top: 8px;"><strong>核心能力：</strong>模擬人工操作畫面（點擊、鍵入）</div>
+            <div style="margin-top: 4px;"><strong>適合：</strong>固定格式的重複性作業</div>
+          </div>
+        </div>
+        <div class="card" style="border-top: 4px solid #2980B9;">
+          <div style="text-align:center; margin-bottom: 12px;">
+            <div style="font-size: 32px;">🔗</div>
+            <div style="font-size: 15px; font-weight: 800; color: var(--navy); margin-top: 6px;">工作流程自動化</div>
+            <div style="font-size: 11px; color: var(--text-light); margin-top: 2px;">Workflow Automation</div>
+          </div>
+          <div style="font-size: 12px; color: var(--text); line-height: 1.7;">
+            <div>代表：n8n、Make.com、Zapier</div>
+            <div style="margin-top: 8px;"><strong>核心能力：</strong>串接不同系統的 API</div>
+            <div style="margin-top: 4px;"><strong>適合：</strong>讓資料在系統之間自動流動</div>
+          </div>
+        </div>
+        <div class="card" style="border-top: 4px solid #1E8449;">
+          <div style="text-align:center; margin-bottom: 12px;">
+            <div style="font-size: 32px;">🧠</div>
+            <div style="font-size: 15px; font-weight: 800; color: var(--navy); margin-top: 6px;">AI 軟體工具</div>
+            <div style="font-size: 11px; color: var(--text-light); margin-top: 2px;">Large Language Model</div>
+          </div>
+          <div style="font-size: 12px; color: var(--text); line-height: 1.7;">
+            <div>代表：Claude、ChatGPT、EgentHub</div>
+            <div style="margin-top: 8px;"><strong>核心能力：</strong>語意理解、文字生成</div>
+            <div style="margin-top: 4px;"><strong>適合：</strong>讀懂非結構化訂單描述</div>
+          </div>
+        </div>
+      </div>
+      <div class="alert alert-info" style="margin-top: 4px;">
+        <span class="alert-icon">🔑</span>
+        <span><strong>關鍵觀念：</strong>三者並非競爭關係，而是互補。單獨使用任何一種都無法解決扣件廠訂單處理的複雜性，需要組合運用。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RPA 優缺點 ══ -->
+  <div class="slide">
+    <div class="slide-header">
+      <span class="icon">🤖</span>
+      <div>
+        <h2>RPA 工具優缺點分析</h2>
+        <div class="subtitle">UiPath、Power Automate Desktop、Automation Anywhere</div>
+      </div>
+    </div>
+    <div class="slide-body">
+      <div class="pros-cons">
+        <div class="pros">
+          <h3>✅ 優點</h3>
+          <ul class="check-list">
+            <li>無需改動現有系統，直接操控畫面</li>
+            <li>適合高重複性、格式固定的批次作業</li>
+            <li>執行速度快、24 小時不間斷、錯誤率低</li>
+            <li>提供錄製功能，降低技術門檻</li>
+            <li>製造業導入案例成熟</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h3>❌ 缺點</h3>
+          <ul class="check-list">
+            <li>格式一改、位置一動，機器人即失效需重寫</li>
+            <li>無法讀懂非結構化訂單文字的語意</li>
+            <li>無法處理頁數不固定的多子訂單</li>
+            <li>執行期間佔用桌面，<strong>同仁無法同時使用該電腦</strong></li>
+            <li>企業級授權費用高，整體維護成本持續累積</li>
+          </ul>
+        </div>
+      </div>
+      <div class="alert alert-warn">
+        <span class="alert-icon">⚠️</span>
+        <div>
+          <strong>重要限制：</strong>RPA 執行期間直接佔用桌面畫面（並非背景執行），同仁必須等待機器人跑完才能繼續工作。若要解決此問題，需另備「專用自動化電腦」，或購買伺服器版授權，額外增加成本。
+        </div>
+      </div>
+      <div class="alert alert-info">
+        <span class="alert-icon">💡</span>
+        <span>RPA 本質類似「自行撰寫的客製軟體」——格式一改就壞，壞了就要重寫，需持續投入維護，並非製造業的核心業務。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 工作流程平台 ══ -->
+  <div class="slide">
+    <div class="slide-header">
+      <span class="icon">🔗</span>
+      <div>
+        <h2>工作流程自動化平台分析</h2>
+        <div class="subtitle">n8n、Make.com、Zapier 比較</div>
+      </div>
+    </div>
+    <div class="slide-body">
+      <div class="pros-cons">
+        <div class="pros">
+          <h3>✅ 優點</h3>
+          <ul class="check-list">
+            <li>串接 Gmail、Google Sheets、ERP API 等多系統</li>
+            <li>視覺化拖拉介面，不需寫程式</li>
+            <li>可整合 AI API，補強語意判斷能力</li>
+            <li>n8n 可自架，資料不出公司（資安友善）</li>
+            <li>對 Google Workspace 整合完整</li>
+            <li>成本低：n8n 自架幾乎零授權費</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h3>❌ 缺點</h3>
+          <ul class="check-list">
+            <li>需 ERP 開放 API，否則無法串接</li>
+            <li>本身不具語意理解能力，需外接 AI</li>
+            <li>n8n 複雜流程需一定技術能力設定</li>
+            <li>Zapier 複雜流程按步驟計費，長期費用高</li>
+          </ul>
+        </div>
+      </div>
+      <table class="compare-table">
+        <thead>
+          <tr><th>比較項目</th><th>n8n</th><th>Make.com</th><th>Zapier</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>技術門檻</td><td class="tag-mid">中高</td><td class="tag-mid">中</td><td class="tag-good">低</td></tr>
+          <tr><td>資料安全（可自架）</td><td class="tag-good">✅ 可自架</td><td class="tag-bad">❌ 雲端</td><td class="tag-bad">❌ 雲端</td></tr>
+          <tr><td>Google Workspace 整合</td><td class="tag-good">✅ 完整</td><td class="tag-good">✅ 完整</td><td class="tag-good">✅ 完整</td></tr>
+          <tr><td>費用</td><td class="tag-good">自架免費</td><td class="tag-mid">中等</td><td class="tag-bad">複雜流程偏貴</td></tr>
+          <tr><td>建議對象</td><td>有技術支援的中小企業</td><td>進階非技術用戶</td><td>技術小白快速嘗試</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ AI 工具 ══ -->
+  <div class="slide">
+    <div class="slide-header">
+      <span class="icon">🧠</span>
+      <div>
+        <h2>AI 軟體工具分析</h2>
+        <div class="subtitle">Claude、ChatGPT、Gemini 及專業型 AI 應用</div>
+      </div>
+    </div>
+    <div class="slide-body">
+      <div class="pros-cons">
+        <div class="pros">
+          <h3>✅ 優點</h3>
+          <ul class="check-list">
+            <li>能讀懂非結構化訂單文字，判斷計價單位與包裝邏輯</li>
+            <li>可處理中英文混合訂單，撰寫英文報價回覆</li>
+            <li>只需調整提示詞（Prompt）即可應對不同格式</li>
+            <li>可透過 API 嵌入 n8n，成為智慧判斷節點</li>
+            <li>支援 MCP，可直接連接 Gmail、Google Sheets</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h3>❌ 缺點</h3>
+          <ul class="check-list">
+            <li><strong>換工具後，之前「教 AI」的時間全部白費</strong></li>
+            <li>判斷不保證 100% 正確，必須有人工確認關卡</li>
+            <li>資料送至雲端，需評估資安政策</li>
+            <li>AI 模型更迭快速，需評估切換成本</li>
+            <li>API 按 Token 計費，大量使用需控管費用</li>
+          </ul>
+        </div>
+      </div>
+      <div class="alert alert-warn">
+        <span class="alert-icon">⚠️</span>
+        <div><strong>隱性成本警示：</strong>讓 AI 理解公司業務邏輯（產品規格、客戶慣例、包裝計算）需大量時間投入。一旦更換 AI 工具，所有調教工作幾乎要從頭來過。建議同步建立「<strong>業務邏輯文件庫</strong>」，將 Prompt 範本、客戶訂單慣例表、例外案例等結構化記錄，降低換工具的重建成本。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 綜合比較 ══ -->
+  <div class="slide">
+    <div class="slide-header">
+      <span class="icon">📊</span>
+      <div>
+        <h2>三大工具綜合比較</h2>
+        <div class="subtitle">依扣件廠核心痛點評估各工具適用性</div>
+      </div>
+    </div>
+    <div class="slide-body">
+      <table class="compare-table">
+        <thead>
+          <tr><th>比較項目</th><th>RPA 工具</th><th>工作流程平台（n8n）</th><th>AI 軟體工具</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>訂單語意判斷</td><td class="tag-bad">❌ 完全不行</td><td class="tag-bad">❌ 完全不行</td><td class="tag-good">✅ 最強</td></tr>
+          <tr><td>格式不固定文件</td><td class="tag-bad">❌ 不適合</td><td class="tag-bad">❌ 不適合</td><td class="tag-good">✅ 最適合</td></tr>
+          <tr><td>多子訂單拆分</td><td class="tag-bad">❌ 不行</td><td class="tag-bad">❌ 不行</td><td class="tag-good">✅ 可行</td></tr>
+          <tr><td>Gmail 自動觸發</td><td class="tag-bad">❌ 有限</td><td class="tag-good">✅ 最強</td><td class="tag-good">✅（MCP）</td></tr>
+          <tr><td>Google Sheets 整合</td><td class="tag-mid">△ 有限</td><td class="tag-good">✅ 完整</td><td class="tag-good">✅（MCP）</td></tr>
+          <tr><td>ERP 資料輸入</td><td class="tag-good">✅（畫面操作）</td><td class="tag-good">✅（有 API）</td><td class="tag-mid">△ 需搭配</td></tr>
+          <tr><td>維護複雜度</td><td class="tag-bad">⚠️ 高（格式一改就壞）</td><td class="tag-mid">中</td><td class="tag-good">低至中</td></tr>
+          <tr><td>導入成本</td><td class="tag-bad">高</td><td class="tag-good">低至中</td><td class="tag-mid">中</td></tr>
+        </tbody>
+      </table>
+      <div class="alert alert-success" style="margin-top: 4px;">
+        <span class="alert-icon">✅</span>
+        <span><strong>建議組合：</strong>AI（語意理解）+ n8n（系統串接）+ ERP API 或批次匯入（執行輸入），三者各司其職，缺一不可。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 不採用RPA ══ -->
+  <div class="slide">
+    <div class="slide-header">
+      <span class="icon">🚫</span>
+      <div>
+        <h2>建議不採用 RPA 的理由</h2>
+        <div class="subtitle">提報管理層參考之建議方向</div>
+      </div>
+    </div>
+    <div class="slide-body">
+      <div class="alert alert-warn" style="margin-bottom: 4px;">
+        <span class="alert-icon">📌</span>
+        <strong>建議結論：本次自動化導入規劃，建議不將 RPA 工具納入。</strong>
+      </div>
+      <div class="card">
+        <div class="card-title">🔑 核心理由</div>
+        <div class="pain-list" style="gap: 8px;">
+          <div class="pain-item" style="border-left-color: var(--red);">
+            <div class="pain-num" style="background: var(--red);">01</div>
+            <div>
+              <div class="pain-title">類似自行撰寫的客製軟體</div>
+              <div class="pain-desc">只要系統畫面格式改變、欄位位置調整，整個流程就會失效，需要重新修改撰寫，維護成本持續累積，並非一次建置即可長期使用。</div>
+            </div>
+          </div>
+          <div class="pain-item" style="border-left-color: var(--red);">
+            <div class="pain-num" style="background: var(--red);">02</div>
+            <div>
+              <div class="pain-title">執行期間同仁無法使用電腦</div>
+              <div class="pain-desc">RPA 直接操控桌面畫面（非背景執行），執行期間螢幕被佔用，同仁無法同時工作。若需解決此問題，須另備專用電腦或購買高成本的伺服器版授權。</div>
+            </div>
+          </div>
+          <div class="pain-item" style="border-left-color: var(--red);">
+            <div class="pain-num" style="background: var(--red);">03</div>
+            <div>
+              <div class="pain-title">無法處理我們最核心的問題</div>
+              <div class="pain-desc">RPA 對於「讀懂訂單文字描述」完全沒有能力，無法判斷語意、包裝階層，也無法處理頁數不固定的多子訂單。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="alert alert-info">
+        <span class="alert-icon">🔄</span>
+        <span>RPA 原本負責的「ERP 資料輸入執行」部分，建議改以 <strong>ERP API 串接</strong>（優先）或 <strong>ERP 批次匯入功能</strong>（過渡方案）取代，既安全又無需額外維護負擔。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 建議架構 ══ -->
+  <div class="slide">
+    <div class="slide-header">
+      <span class="icon">🏗️</span>
+      <div>
+        <h2>建議導入架構</h2>
+        <div class="subtitle">三層分工，各司其職</div>
+      </div>
+    </div>
+    <div class="slide-body">
+      <div class="arch-flow">
+        <div class="arch-block">
+          <div class="arch-block-title">觸發層</div>
+          <div class="arch-block-main">📧 Gmail（Google Workspace）</div>
+          <div class="arch-block-sub">n8n 監控信箱，收到客戶訂單後自動觸發流程</div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-block" style="background: #D5EEF8; border-color: var(--blue);">
+          <div class="arch-block-title">理解層</div>
+          <div class="arch-block-main">🧠 LLM（Claude / GPT-4）</div>
+          <div class="arch-block-sub">讀懂訂單語意，萃取計價單位、包裝階層、子訂單邊界，輸出結構化資料</div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-block" style="background: #D5F5E3; border-color: #A9DFBF;">
+          <div class="arch-block-title">確認層</div>
+          <div class="arch-block-main">👤 人工確認（Google Sheets）</div>
+          <div class="arch-block-sub">AI 解析結果呈現於 Google Sheets，由人員審核確認後，方可進入下一步</div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-block" style="background: #FDEBD0; border-color: #F5CBA7;">
+          <div class="arch-block-title">執行層</div>
+          <div class="arch-block-main">⚙️ ERP API / 批次匯入</div>
+          <div class="arch-block-sub">確認後的資料自動輸入 ERP 系統，完成訂單建立</div>
+        </div>
+      </div>
+      <div class="alert alert-info" style="margin-top: 8px;">
+        <span class="alert-icon">💡</span>
+        <span>n8n 在整個流程中扮演「指揮中心」的角色，負責串接 Gmail、AI API、Google Sheets 與 ERP，並控制每個節點的資料流向。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 三階段路線圖 ══ -->
+  <div class="slide">
+    <div class="slide-header">
+      <span class="icon">🗺️</span>
+      <div>
+        <h2>三階段導入路線圖</h2>
+        <div class="subtitle">循序漸進，從最小可行方案開始</div>
+      </div>
+    </div>
+    <div class="slide-body">
+      <div class="timeline">
+        <div class="timeline-item">
+          <div>
+            <div class="timeline-badge">第一階段</div>
+            <div style="text-align:center; font-size:11px; color: var(--text-light); margin-top: 4px;">1～2 個月</div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-title">🤝 習慣 AI 協作</div>
+            <div class="timeline-desc">選定一款桌面 AI 工具（建議 Claude Desktop 或 ChatGPT Desktop），讓業務與行政人員用於整理訂單摘要、起草英文報價信、翻譯技術規格文件。<strong>不需任何系統串接</strong>，純人工輔助使用，先建立人機協作習慣。</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div>
+            <div class="timeline-badge" style="background: var(--blue);">第二階段</div>
+            <div style="text-align:center; font-size:11px; color: var(--text-light); margin-top: 4px;">1～3 個月</div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-title">🔗 串接 Google Workspace</div>
+            <div class="timeline-desc">建置 n8n（建議自架）。設計 Gmail → n8n → AI → Google Sheets 流程：Gmail 收到訂單→ n8n 取出內容 → AI 解析 → 結果寫入 Google Sheets 供人員確認。確認正確後，人工進行 ERP 輸入。</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div>
+            <div class="timeline-badge" style="background: #27AE60;">第三階段</div>
+            <div style="text-align:center; font-size:11px; color: var(--text-light); margin-top: 4px;">3～6 個月</div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-title">⚙️ 連接 ERP 自動輸入</div>
+            <div class="timeline-desc">優先評估 ERP 是否有 API 可串接；若無，採用批次匯入（Excel/CSV）作為過渡方案；中長期可評估請 ERP 廠商開發客製介面模組。加入例外處理機制，AI 不確定時自動轉人工。</div>
+          </div>
+        </div>
+      </div>
+      <div class="alert alert-success">
+        <span class="alert-icon">🎯</span>
+        <span><strong>關鍵原則：</strong>先從「最痛的一個流程」開始，做出成果讓團隊感受到效益，後續推廣才有動力。不要試圖一次自動化所有流程。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ AI 策略 ══ -->
+  <div class="slide">
+    <div class="slide-header">
+      <span class="icon">🎯</span>
+      <div>
+        <h2>AI 導入核心策略</h2>
+        <div class="subtitle">三大策略原則，確保長期效益</div>
+      </div>
+    </div>
+    <div class="slide-body">
+      <div class="strategy-grid">
+        <div class="strategy-card">
+          <div class="strategy-icon">🏆</div>
+          <div>
+            <div class="strategy-title">策略一：選定平台架構，深度熟練，不輕易追新</div>
+            <div class="strategy-desc">AI 工具日新月異，若一直追求最新工具，團隊永遠處於「重新適應」的狀態。真正的資產不是工具本身，而是：公司流程的 AI 化程度、團隊的人機協作熟練度、累積的 Prompt 設計知識，以及業務邏輯的文件化程度。</div>
+          </div>
+        </div>
+        <div class="strategy-card">
+          <div class="strategy-icon">📚</div>
+          <div>
+            <div class="strategy-title">策略二：業務邏輯必須文件化，避免重複訓練 AI</div>
+            <div class="strategy-desc">讓 AI 理解公司業務需大量時間投入。若這些知識只存在於「AI 對話記憶」中，換工具就全部白費。應建立「AI 業務邏輯文件庫」：<strong>產品規格對照表、客戶訂單慣例表、Prompt 範本庫、例外案例記錄</strong>，降低換工具的重建成本。</div>
+          </div>
+        </div>
+        <div class="strategy-card">
+          <div class="strategy-icon">🔌</div>
+          <div>
+            <div class="strategy-title">策略三：採用 MCP 架構，降低對單一廠商依賴</div>
+            <div class="strategy-desc">MCP（Model Context Protocol）是 Anthropic 推出的開放標準，OpenAI、Google 等已跟進，正成為 AI 串接工具的通用介面。透過 MCP，AI 可直接連接 Gmail、Google Sheets 等工具。<strong>關鍵優勢：底層換 AI 模型時，MCP 串接架構不需重做。</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ERP 串接 ══ -->
+  <div class="slide">
+    <div class="slide-header">
+      <span class="icon">🔌</span>
+      <div>
+        <h2>ERP 串接方式選擇</h2>
+        <div class="subtitle">依 ERP 廠商支援狀況選擇最適方案</div>
+      </div>
+    </div>
+    <div class="slide-body">
+      <div class="erp-method">
+        <div class="erp-method-title"><span style="color: var(--green);">✅ 方式一：API 串接（最推薦）</span></div>
+        <div class="erp-method-desc">若 ERP 廠商提供 REST API 或 Web Service，n8n 可直接呼叫。資料走 ERP 應用層，驗證邏輯、庫存計算、審計記錄正常運作。<strong>→ 優先向 ERP 廠商確認是否提供 API 文件。</strong></div>
+      </div>
+      <div class="erp-method">
+        <div class="erp-method-title"><span style="color: var(--blue);">🔄 方式二：批次匯入 Excel/CSV（過渡方案）</span></div>
+        <div class="erp-method-desc">幾乎所有 ERP 都提供批次匯入功能。n8n 將 AI 解析好的訂單資料自動產生成符合格式的 Excel，人工或自動觸發匯入。走官方介面，ERP 業務邏輯正常運作，技術門檻低。<strong>→ 無 API 時立即可用的最安全方案。</strong></div>
+      </div>
+      <div class="erp-method">
+        <div class="erp-method-title"><span style="color: var(--orange);">🔧 方式三：ERP 廠商客製介面模組（中長期）</span></div>
+        <div class="erp-method-desc">委託 ERP 廠商開發輕量 API 或匯入介面。由原廠開發，資料完整性有保障，可客製化欄位與邏輯。需額外費用與開發時間。<strong>→ 適合列為中長期目標。</strong></div>
+      </div>
+      <div class="erp-method" style="border-left: 4px solid var(--red);">
+        <div class="erp-method-title"><span style="color: var(--red);">🚫 方式四：直接寫入 SQL（不建議）</span></div>
+        <div class="erp-method-desc">繞過 ERP 應用邏輯，可能造成庫存不一致、審計記錄缺失；ERP 廠商通常不允許此方式，出問題後不提供技術支援。與 RPA 一樣，ERP 升級後寫入腳本也需重新修改。<strong>→ 除非廠商明確提供保障，否則不應採用。</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 工具選型 ══ -->
+  <div class="slide">
+    <div class="slide-header">
+      <span class="icon">✅</span>
+      <div>
+        <h2>工具選型建議摘要</h2>
+        <div class="subtitle">本次規劃建議採用的工具組合</div>
+      </div>
+    </div>
+    <div class="slide-body">
+      <div class="tool-grid">
+        <div class="tool-row">
+          <div class="tool-name">🤖 RPA 工具</div>
+          <div><span class="tool-badge badge-no">❌ 建議不採用</span></div>
+          <div class="tool-desc">維護成本高，本質類似客製軟體，格式一改就壞；執行期間佔用電腦桌面；無法處理語意判斷問題。</div>
+        </div>
+        <div class="tool-row">
+          <div class="tool-name">🔗 n8n<br><small style="font-weight:400; color: var(--text-light);">工作流程平台</small></div>
+          <div><span class="tool-badge badge-yes">✅ 建議採用</span></div>
+          <div class="tool-desc">串接 Gmail + AI API + ERP，彈性最高，可自架保護資料安全，幾乎零授權費用。</div>
+        </div>
+        <div class="tool-row">
+          <div class="tool-name">🧠 Claude / GPT-4<br><small style="font-weight:400; color: var(--text-light);">AI 語意理解</small></div>
+          <div><span class="tool-badge badge-yes">✅ 建議採用</span></div>
+          <div class="tool-desc">讀懂訂單文字描述，判斷計價單位、包裝階層、子訂單邊界；透過 API 嵌入 n8n 流程。</div>
+        </div>
+        <div class="tool-row">
+          <div class="tool-name">📊 Google Sheets<br><small style="font-weight:400; color: var(--text-light);">人工確認介面</small></div>
+          <div><span class="tool-badge badge-yes">✅ 建議採用</span></div>
+          <div class="tool-desc">已在使用，學習成本低；作為 AI 解析結果的確認介面，確保人工審核後才進 ERP。</div>
+        </div>
+        <div class="tool-row">
+          <div class="tool-name">⚙️ ERP 串接<br><small style="font-weight:400; color: var(--text-light);">資料輸入執行</small></div>
+          <div><span class="tool-badge badge-pending">待確認</span></div>
+          <div class="tool-desc">優先評估 ERP API 串接，其次 Excel 批次匯入，中長期評估廠商客製介面模組。避免直接寫入 SQL。</div>
+        </div>
+      </div>
+      <div class="alert alert-info" style="margin-top: 8px;">
+        <span class="alert-icon">📌</span>
+        <span><strong>下一步：</strong>向 ERP 廠商確認是否提供 REST API 或批次匯入格式文件，這是整個自動化架構能否落地的核心關鍵。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 結論 ══ -->
+  <div class="slide">
+    <div class="slide-header">
+      <span class="icon">🎯</span>
+      <div>
+        <h2>結論與後續行動</h2>
+        <div class="subtitle">建議方向總結</div>
+      </div>
+    </div>
+    <div class="slide-body">
+      <div class="conclusion-box">
+        <h3>📌 核心建議</h3>
+        <p>以「<strong>n8n（系統串接）+ Claude/GPT-4（語意判斷）+ 人工確認</strong>」為核心架構，分三階段逐步導入。選定平台後深度熟練，同步建立業務邏輯文件庫，採用 MCP 架構降低廠商依賴，確保長期可持續發展。</p>
+      </div>
+      <div class="action-list">
+        <div class="action-item"><span class="num">1</span>向 ERP 廠商確認 API 支援狀況及批次匯入格式文件</div>
+        <div class="action-item"><span class="num">2</span>選定桌面 AI 工具（Claude Desktop 或 ChatGPT Desktop），讓業務人員開始使用</div>
+        <div class="action-item"><span class="num">3</span>建立螺絲規格單位換算對照表及客戶訂單慣例表</div>
+        <div class="action-item"><span class="num">4</span>評估 n8n 自架可行性（資訊部門或委外協助）</div>
+        <div class="action-item"><span class="num">5</span>選定第一個試點流程（建議從訂單摘要自動整理開始）</div>
+        <div class="action-item"><span class="num">6</span>建立「AI 業務邏輯文件庫」，記錄 Prompt 範本與例外案例</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 結尾 ══ -->
+  <div class="slide cover">
+    <div class="cover-body">
+      <div class="cover-icon">🙏</div>
+      <h1>感謝聆聽</h1>
+      <p>本報告內容整理自 NotebookLM「自動化軟體分析與建議」筆記本<br>如有任何問題，歡迎進一步討論</p>
+      <div class="cover-meta">
+        <span>🏭 金屬扣件製造業 自動化規劃</span>
+        <span>📅 2026 年</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /slideshow -->
+
+<!-- 導航 -->
+<div id="nav">
+  <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">← 上一頁</button>
+  <div id="dots"></div>
+  <button class="nav-btn primary" id="nextBtn" onclick="changeSlide(1)">下一頁 →</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  // 建立導覽點
+  const dotsEl = document.getElementById('dots');
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  });
+
+  function goTo(n) {
+    slides[current].classList.remove('active');
+    dotsEl.children[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    dotsEl.children[current].classList.add('active');
+    document.getElementById('prevBtn').disabled = current === 0;
+    document.getElementById('nextBtn').disabled = current === total - 1;
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('progress-bar').style.width = ((current + 1) / total * 100) + '%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function changeSlide(dir) { goTo(current + dir); }
+
+  // 鍵盤導航
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp') changeSlide(-1);
+  });
+
+  goTo(0);
+</script>
+</body>
+</html>
