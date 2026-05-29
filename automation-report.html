@@ -482,8 +482,41 @@
   }
   .erp-method-desc { font-size: 14px; color: var(--text-light); line-height: 1.6; }
 
+  /* ── 投影片圖片 ── */
+  .slide-img {
+    width: 100%;
+    border-radius: 10px;
+    object-fit: cover;
+    display: block;
+  }
+  .slide-img-side {
+    width: 100%;
+    max-height: 340px;
+    border-radius: 10px;
+    object-fit: cover;
+    box-shadow: 0 4px 16px var(--shadow);
+    display: block;
+  }
+  .with-image {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+    align-items: start;
+    flex: 1;
+  }
+  .cover-bg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0.18;
+    pointer-events: none;
+  }
+  .cover { position: relative; overflow: hidden; }
+  .cover .cover-body { position: relative; z-index: 1; }
+
   @media (max-width: 700px) {
-    .pros-cons, .two-col, .three-col, .toc-grid { grid-template-columns: 1fr; }
+    .pros-cons, .two-col, .three-col, .toc-grid, .with-image { grid-template-columns: 1fr; }
     .slide-body { padding: 20px; }
     .slide-header { padding: 16px 20px; }
     .cover h1 { font-size: 26px; }
@@ -500,6 +533,7 @@
 
   <!-- ══ 封面 ══ -->
   <div class="slide active cover">
+    <img class="cover-bg" src="slides/generated/slide01_cover_20260529_163613.png" alt="">
     <div class="cover-body">
       <div class="cover-icon">🔧</div>
       <h1>自動化軟體分析<br>與導入建議</h1>
@@ -857,35 +891,43 @@
         <span class="alert-icon">📌</span>
         <strong>建議結論：本次自動化導入規劃，建議不將 RPA 工具納入。</strong>
       </div>
-      <div class="card">
-        <div class="card-title">🔑 核心理由</div>
-        <div class="pain-list" style="gap: 8px;">
-          <div class="pain-item" style="border-left-color: var(--red);">
-            <div class="pain-num" style="background: var(--red);">01</div>
-            <div>
-              <div class="pain-title">類似自行撰寫的客製軟體</div>
-              <div class="pain-desc">只要系統畫面格式改變、欄位位置調整，整個流程就會失效，需要重新修改撰寫，維護成本持續累積，並非一次建置即可長期使用。</div>
+      <div class="with-image">
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div class="card">
+            <div class="card-title">🔑 核心理由</div>
+            <div class="pain-list" style="gap: 8px;">
+              <div class="pain-item" style="border-left-color: var(--red);">
+                <div class="pain-num" style="background: var(--red);">01</div>
+                <div>
+                  <div class="pain-title">類似自行撰寫的客製軟體</div>
+                  <div class="pain-desc">只要系統畫面格式改變、欄位位置調整，整個流程就會失效，需要重新修改撰寫，維護成本持續累積。</div>
+                </div>
+              </div>
+              <div class="pain-item" style="border-left-color: var(--red);">
+                <div class="pain-num" style="background: var(--red);">02</div>
+                <div>
+                  <div class="pain-title">執行期間同仁無法使用電腦</div>
+                  <div class="pain-desc">RPA 直接操控桌面畫面（非背景執行），同仁無法同時工作，須另備專用電腦或購買高成本伺服器版授權。</div>
+                </div>
+              </div>
+              <div class="pain-item" style="border-left-color: var(--red);">
+                <div class="pain-num" style="background: var(--red);">03</div>
+                <div>
+                  <div class="pain-title">無法處理我們最核心的問題</div>
+                  <div class="pain-desc">RPA 無法「讀懂」訂單文字描述，無法判斷語意、包裝階層，也無法處理頁數不固定的多子訂單。</div>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="pain-item" style="border-left-color: var(--red);">
-            <div class="pain-num" style="background: var(--red);">02</div>
-            <div>
-              <div class="pain-title">執行期間同仁無法使用電腦</div>
-              <div class="pain-desc">RPA 直接操控桌面畫面（非背景執行），執行期間螢幕被佔用，同仁無法同時工作。若需解決此問題，須另備專用電腦或購買高成本的伺服器版授權。</div>
-            </div>
-          </div>
-          <div class="pain-item" style="border-left-color: var(--red);">
-            <div class="pain-num" style="background: var(--red);">03</div>
-            <div>
-              <div class="pain-title">無法處理我們最核心的問題</div>
-              <div class="pain-desc">RPA 對於「讀懂訂單文字描述」完全沒有能力，無法判斷語意、包裝階層，也無法處理頁數不固定的多子訂單。</div>
-            </div>
+          <div class="alert alert-info">
+            <span class="alert-icon">🔄</span>
+            <span>建議改以 <strong>ERP API 串接</strong>（優先）或 <strong>ERP 批次匯入功能</strong>（過渡）取代，既安全又無需額外維護。</span>
           </div>
         </div>
-      </div>
-      <div class="alert alert-info">
-        <span class="alert-icon">🔄</span>
-        <span>RPA 原本負責的「ERP 資料輸入執行」部分，建議改以 <strong>ERP API 串接</strong>（優先）或 <strong>ERP 批次匯入功能</strong>（過渡方案）取代，既安全又無需額外維護負擔。</span>
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;">
+          <img class="slide-img-side" src="slides/generated/slide10_rpa_fragile_20260529_163617.png" alt="RPA脆弱性示意圖">
+          <div style="font-size:12px; color:var(--text-light); text-align:center;">格式一改，整個系統就像抽掉積木一樣倒塌</div>
+        </div>
       </div>
     </div>
   </div>
@@ -991,27 +1033,33 @@
       </div>
     </div>
     <div class="slide-body">
-      <div class="strategy-grid">
-        <div class="strategy-card">
-          <div class="strategy-icon">🏆</div>
-          <div>
-            <div class="strategy-title">策略一：選定平台架構，深度熟練，不輕易追新</div>
-            <div class="strategy-desc">AI 工具日新月異，若一直追求最新工具，團隊永遠處於「重新適應」的狀態。真正的資產不是工具本身，而是：公司流程的 AI 化程度、團隊的人機協作熟練度、累積的 Prompt 設計知識，以及業務邏輯的文件化程度。</div>
+      <div class="with-image">
+        <div class="strategy-grid">
+          <div class="strategy-card">
+            <div class="strategy-icon">🏆</div>
+            <div>
+              <div class="strategy-title">策略一：選定平台架構，深度熟練，不輕易追新</div>
+              <div class="strategy-desc">AI 工具日新月異，若一直追求最新工具，團隊永遠處於「重新適應」的狀態。真正的資產不是工具本身，而是：流程 AI 化程度、人機協作熟練度、Prompt 知識，以及業務邏輯的文件化程度。</div>
+            </div>
+          </div>
+          <div class="strategy-card">
+            <div class="strategy-icon">📚</div>
+            <div>
+              <div class="strategy-title">策略二：業務邏輯必須文件化，避免重複訓練 AI</div>
+              <div class="strategy-desc">讓 AI 理解公司業務需大量時間投入。若知識只存在於「AI 對話記憶」中，換工具就全部白費。應建立「AI 業務邏輯文件庫」，降低換工具的重建成本。</div>
+            </div>
+          </div>
+          <div class="strategy-card">
+            <div class="strategy-icon">🔌</div>
+            <div>
+              <div class="strategy-title">策略三：採用 MCP 架構，降低對單一廠商依賴</div>
+              <div class="strategy-desc">MCP 是開放標準，AI 可直接連接 Gmail、Google Sheets 等工具。<strong>關鍵優勢：底層換 AI 模型時，MCP 串接架構不需重做。</strong></div>
+            </div>
           </div>
         </div>
-        <div class="strategy-card">
-          <div class="strategy-icon">📚</div>
-          <div>
-            <div class="strategy-title">策略二：業務邏輯必須文件化，避免重複訓練 AI</div>
-            <div class="strategy-desc">讓 AI 理解公司業務需大量時間投入。若這些知識只存在於「AI 對話記憶」中，換工具就全部白費。應建立「AI 業務邏輯文件庫」：<strong>產品規格對照表、客戶訂單慣例表、Prompt 範本庫、例外案例記錄</strong>，降低換工具的重建成本。</div>
-          </div>
-        </div>
-        <div class="strategy-card">
-          <div class="strategy-icon">🔌</div>
-          <div>
-            <div class="strategy-title">策略三：採用 MCP 架構，降低對單一廠商依賴</div>
-            <div class="strategy-desc">MCP（Model Context Protocol）是 Anthropic 推出的開放標準，OpenAI、Google 等已跟進，正成為 AI 串接工具的通用介面。透過 MCP，AI 可直接連接 Gmail、Google Sheets 等工具。<strong>關鍵優勢：底層換 AI 模型時，MCP 串接架構不需重做。</strong></div>
-          </div>
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;">
+          <img class="slide-img-side" src="slides/generated/slide13_knowledge_pyramid_20260529_163617.png" alt="知識金字塔示意圖">
+          <div style="font-size:12px; color:var(--text-light); text-align:center;">真正的資產在金字塔頂端——是知識，不是工具</div>
         </div>
       </div>
     </div>
@@ -1100,17 +1148,25 @@
       </div>
     </div>
     <div class="slide-body">
-      <div class="conclusion-box">
-        <h3>📌 核心建議</h3>
-        <p>以「<strong>n8n（系統串接）+ Claude/GPT（語意判斷）+ 人工確認</strong>」為核心架構，分三階段逐步導入。選定平台後深度熟練，同步建立業務邏輯文件庫，採用 MCP 架構降低廠商依賴，確保長期可持續發展。</p>
-      </div>
-      <div class="action-list">
-        <div class="action-item"><span class="num">1</span>向 ERP 廠商確認 API 支援狀況及批次匯入格式文件</div>
-        <div class="action-item"><span class="num">2</span>選定桌面 AI 工具（Claude Code 或 OpenAI Codex），讓業務人員開始使用</div>
-        <div class="action-item"><span class="num">3</span>建立螺絲規格單位換算對照表及客戶訂單慣例表</div>
-        <div class="action-item"><span class="num">4</span>評估 n8n 自架可行性（資訊部門或委外協助）</div>
-        <div class="action-item"><span class="num">5</span>選定第一個試點流程（建議從訂單摘要自動整理開始）</div>
-        <div class="action-item"><span class="num">6</span>建立「AI 業務邏輯文件庫」，記錄 Prompt 範本與例外案例</div>
+      <div class="with-image">
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div class="conclusion-box">
+            <h3>📌 核心建議</h3>
+            <p>以「<strong>n8n（系統串接）+ Claude/GPT（語意判斷）+ 人工確認</strong>」為核心架構，分三階段逐步導入。選定平台後深度熟練，同步建立業務邏輯文件庫，採用 MCP 架構降低廠商依賴，確保長期可持續發展。</p>
+          </div>
+          <div class="action-list">
+            <div class="action-item"><span class="num">1</span>向 ERP 廠商確認 API 支援狀況及批次匯入格式文件</div>
+            <div class="action-item"><span class="num">2</span>選定桌面 AI 工具（Claude Code 或 OpenAI Codex），讓業務人員開始使用</div>
+            <div class="action-item"><span class="num">3</span>建立螺絲規格單位換算對照表及客戶訂單慣例表</div>
+            <div class="action-item"><span class="num">4</span>評估 n8n 自架可行性（資訊部門或委外協助）</div>
+            <div class="action-item"><span class="num">5</span>選定第一個試點流程（建議從訂單摘要自動整理開始）</div>
+            <div class="action-item"><span class="num">6</span>建立「AI 業務邏輯文件庫」，記錄 Prompt 範本與例外案例</div>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;">
+          <img class="slide-img-side" src="slides/generated/slide16_action_checklist_20260529_163616.png" alt="行動清單示意圖">
+          <div style="font-size:12px; color:var(--text-light); text-align:center;">逐步勾選、持續前進</div>
+        </div>
       </div>
     </div>
   </div>
